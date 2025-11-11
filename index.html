@@ -3,38 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ular Tangga: Unsur-Unsur Kimia</title>
-    <!-- Memuat font Inter dari Google Fonts -->
+    <title>Ular Tangga: Unsur Kimia</title>
+    <!-- Impor Font Awesome untuk ikon (opsional, tapi dipakai untuk pion) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Impor Google Font (Inter) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- BARU: Tambahkan library confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <style>
         /* Variabel Global untuk Tema Warna */
         :root {
-            --color-bg: #f4f7f6;
+            --color-bg: #f0f4f8;
+            --color-surface: #ffffff;
+            --color-primary: #007BFF;
+            --color-primary-dark: #0056b3;
+            --color-secondary: #6c757d;
+            --color-accent: #17a2b8;
             --color-text: #333;
-            --color-border: #d1d5db;
-            --color-shadow: rgba(0, 0, 0, 0.1);
-            --color-accent: #007bff; /* Biru */
-            --color-accent-dark: #0056b3;
-            --color-danger: #dc3545; /* Merah */
-            --color-success: #28a745; /* Hijau */
-            --color-warning: #ffc107; /* Kuning */
-            --color-snake: rgba(220, 53, 69, 0.8); /* Merah untuk ular */
-            --color-ladder: rgba(40, 167, 69, 0.8); /* Hijau untuk tangga */
-            --color-dice: #FB8C00; /* Oranye untuk dadu (BARU) */
-            --color-dice-dark: #F57C00;
+            --color-border: #dee2e6;
+            --color-success: #28a745;
+            --color-danger: #dc3545;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 10px rgba(0,0,0,0.1);
+            --border-radius: 8px;
         }
 
-        /* Pengaturan Dasar */
-        *, *::before, *::after {
+        * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--color-bg);
             color: var(--color-text);
             display: flex;
@@ -42,98 +45,82 @@
             align-items: center;
             min-height: 100vh;
             padding: 1rem;
-            line-height: 1.6;
         }
 
-        /* Kontainer Utama Permainan */
         .game-container {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* Agar responsif di layar kecil */
             justify-content: center;
             align-items: flex-start;
-            gap: 1.5rem; /* Jarak antar panel */
+            gap: 2rem;
             width: 100%;
-            max-width: 1400px;
+            max-width: 1200px;
         }
-        
+
         /* BARU: Sembunyikan panel kiri sebelum game mulai agar panel kanan ke tengah */
         .game-container:not(.game-started) .left-panel {
             display: none;
         }
 
-        /* Panel Kiri (Papan Permainan) */
         .left-panel {
-            flex: 3; /* Mengambil ruang lebih banyak */
-            min-width: 320px;
-            max-width: 800px; /* Batas maksimum agar tidak terlalu lebar */
-        }
-
-        /* Panel Kanan (Dashboard Kontrol) */
-        .right-panel {
-            flex: 1; /* Mengambil ruang lebih sedikit */
-            min-width: 300px;
-            max-width: 400px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            border: 1px solid var(--color-border);
-            box-shadow: 0 4px 12px var(--color-shadow);
-            padding: 1.5rem;
-        }
-        
-        /* Penataan Halaman Muka (Pra-Permainan) */
-        .game-container:not(.game-started) .right-panel {
-            flex: 1;
-            max-width: 450px; /* Ukuran panel pra-permainan yg pas */
-        }
-
-        #game-board-container {
+            flex-grow: 1;
+            flex-basis: 600px; /* Ukuran dasar papan */
             position: relative;
-            width: 100%;
-            max-width: 800px; /* Batas ukuran papan */
-            height: auto;
-            aspect-ratio: 1 / 1; /* Menjaga papan tetap persegi */
-            margin: 0 auto; /* Tengah secara horizontal */
-            border: 2px solid var(--color-border);
-            border-radius: 8px;
-            box-shadow: 0 6px 15px var(--color-shadow);
-            background-color: #fff;
         }
 
         #game-board {
             display: grid;
             grid-template-columns: repeat(10, 1fr);
             grid-template-rows: repeat(10, 1fr);
+            border: 5px solid var(--color-surface);
+            box-shadow: var(--shadow-md);
+            border-radius: var(--border-radius);
+            
+            /* Penyesuaian ukuran agar pas di Chromebook */
             width: 100%;
-            height: 100%;
-            border-radius: 6px;
+            max-width: 85vh; /* Batasi lebar maks berdasarkan tinggi viewport */
+            max-height: 85vh; /* Batasi tinggi maks */
+            aspect-ratio: 1 / 1; /* Jaga rasio persegi */
+            margin-left: auto;
+            margin-right: auto;
+            
+            position: relative; /* Untuk overlay */
         }
-
-        /* Overlay untuk Garis Ular & Tangga */
+        
         #board-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none; /* Memungkinkan klik menembus SVG */
-            z-index: 1;
+            pointer-events: none; /* Biarkan klik tembus */
+            z-index: 5; /* Di atas papan, di bawah pion */
         }
         
+        /* Style untuk garis Ular & Tangga */
         #board-overlay line {
-            stroke-width: 5;
+            stroke-width: 4;
             opacity: 0.7;
             stroke-linecap: round;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
         }
 
-        /* Kotak-kotak Papan */
         .cell {
-            border: 1px solid var(--color-border);
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%; /* Trik untuk rasio 1:1 */
             position: relative;
-            display: flex;
-            justify-content: flex-start;
-            align-items: flex-start;
-            padding: 4px; /* Padding untuk nomor */
+            font-size: 1.2vw; /* Ukuran font responsif */
+            font-weight: 700;
+            border: 1px solid var(--color-border);
+        }
+        
+        /* Penomoran di dalam kotak */
+        .cell::before {
+            content: attr(data-number);
+            position: absolute;
+            top: 4px;
+            left: 4px; /* Padding untuk nomor */
             font-size: 0.8rem;
             font-weight: 500;
         }
@@ -146,140 +133,124 @@
         
         /* Kotak Khusus */
         .cell[data-number="100"] {
-            background-color: #fffbe3; /* Warna Finish */
-            font-weight: 700;
+            background-color: var(--color-success);
+            color: white;
         }
         .cell[data-number="1"] {
-            background-color: #f0fff0; /* Warna Start */
-            font-weight: 700;
+            background-color: var(--color-accent);
+            color: white;
         }
-        .question-cell::after {
-            content: '❓';
+
+        .question-mark {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 1.5rem; /* Ukuran emoji pertanyaan */
-            opacity: 0.5;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+            opacity: 0.7;
         }
 
-        /* Bidak Pemain (Pion) */
         .pawn {
             position: absolute;
-            width: 16px;
-            height: 16px;
+            width: 30%; /* Dibesarkan dari 25% */
+            height: 30%; /* Dibesarkan dari 25% */
             border-radius: 50%;
-            border: 2px solid rgba(0,0,0,0.5);
-            z-index: 10;
-            transition: all 0.5s ease-in-out;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            
-            /* Penyesuaian posisi agar 6 pion muat */
-            font-size: 9px;
-            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-size: 1.2rem; /* Ikon dibesarkan dari 1rem */
             font-weight: bold;
+            border: 2px solid rgba(0,0,0,0.3);
+            z-index: 10;
+            transition: all 0.5s ease-in-out;
+            box-shadow: var(--shadow-sm);
         }
         
-        /* Posisi 6 pion di dalam 1 kotak */
-        .pawn[data-pawn-id="0"] { background-color: #E53935; /* Merah */ top: 10%; left: 10%; }
-        .pawn[data-pawn-id="1"] { background-color: #1E88E5; /* Biru */ top: 10%; left: 60%; }
-        .pawn[data-pawn-id="2"] { background-color: #43A047; /* Hijau */ top: 35%; left: 35%; }
-        .pawn[data-pawn-id="3"] { background-color: #FDD835; /* Kuning */ top: 60%; left: 10%; color: #333; }
-        .pawn[data-pawn-id="4"] { background-color: #8E24AA; /* Ungu */ top: 60%; left: 60%; }
-        .pawn[data-pawn-id="5"] { background-color: #FB8C00; /* Oranye */ top: 35%; left: 10%; }
+        /* Penempatan 6 pion agar tidak tumpang tindih (Posisi baru) */
+        .pawn[data-player-id="0"] { left: 5%; top: 10%; }
+        .pawn[data-player-id="1"] { left: 35%; top: 10%; }
+        .pawn[data-player-id="2"] { left: 65%; top: 10%; }
+        .pawn[data-player-id="3"] { left: 5%; top: 50%; }
+        .pawn[data-player-id="4"] { left: 35%; top: 50%; }
+        .pawn[data-player-id="5"] { left: 65%; top: 50%; }
 
 
-        /* Elemen Dashboard (Panel Kanan) */
-        .dashboard-title {
+        /* PANEL KANAN (DASHBOARD) */
+        .right-panel {
+            flex-grow: 1;
+            flex-basis: 350px; /* Lebar dasar panel */
+            min-width: 300px; /* Lebar minimum */
+            background-color: var(--color-surface);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
             text-align: center;
-            font-size: 1.75rem;
-            font-weight: 700;
-            color: var(--color-text);
-            margin-bottom: 1.5rem;
-            border-bottom: 2px solid var(--color-accent);
-            padding-bottom: 0.5rem;
-        }
-
-        /* Tombol */
-        .btn {
-            display: inline-block;
-            width: 100%;
-            padding: 0.75rem 1rem;
-            font-size: 1rem;
-            font-weight: 500;
-            color: #ffffff;
-            background-color: var(--color-accent);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-align: center;
-            transition: background-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .btn:hover:not(:disabled) {
-            background-color: var(--color-accent-dark);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .btn:disabled {
-            background-color: #90c5ff;
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-        .btn-danger {
-            background-color: var(--color-danger);
-        }
-        .btn-danger:hover {
-            background-color: #a71d2a;
-        }
-
-        /* Kontrol Pra-Permainan */
-        #pre-game-settings {
             display: flex;
             flex-direction: column;
-            gap: 1rem;
+            gap: 15px;
         }
-        
+
+        /* Sembunyikan panel kontrol saat pra-permainan */
+        .game-container:not(.game-started) #turn-display,
+        .game-container:not(.game-started) #dice-container,
+        .game-container:not(.game-started) #game-log-container,
+        .game-container:not(.game-started) .dashboard-title {
+            display: none;
+        }
+
+        /* Sembunyikan panel pra-permainan saat game berlangsung */
         .game-container.game-started #pre-game-settings {
-            display: none; /* Sembunyikan saat game mulai */
+            display: none;
         }
-        
+
+        /* Pengaturan Pra-Permainan */
+        #pre-game-settings {
+            width: 100%;
+        }
+
         #pre-game-settings div {
+            margin-bottom: 1rem;
+            text-align: left;
             display: flex;
-            justify-content: space-between;
             align-items: center;
             gap: 10px;
         }
+
         #pre-game-settings label {
             font-weight: 500;
-            white-space: nowrap; /* Mencegah label terpotong */
+            flex-basis: 120px; /* Lebar label konsisten */
         }
-        select, input[type="text"] {
+        
+        #player-count, #pre-game-settings input[type="text"] {
             width: 100%;
             padding: 0.5rem;
             border: 1px solid var(--color-border);
-            border-radius: 6px;
+            border-radius: 4px;
             font-family: 'Inter', sans-serif;
-            font-size: 0.95rem;
         }
-        
+
         #player-names-container {
             display: flex;
             flex-direction: column;
-            gap: 0.5rem; /* Jarak antar input nama */
-            margin-top: 10px;
-        }
-        .player-name-input {
-            display: none; /* Sembunyi by default */
-            align-items: center;
             gap: 10px;
+            max-height: 250px;
+            overflow-y: auto;
         }
+        
+        .player-name-input {
+            display: none; /* Sembunyi by default, diatur JS */
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 5px !important; /* Override margin-bottom */
+        }
+
         .player-name-input label {
-            flex-basis: 90px; /* Lebar tetap untuk label */
-            color: #555;
+            flex-basis: 80px !important; /* Label lebih kecil */
+            font-size: 0.9rem;
         }
+
         .player-name-input input {
             flex: 1; /* Input mengisi sisa ruang */
         }
@@ -291,9 +262,7 @@
             margin-bottom: 20px;
             padding-bottom: 15px;
             border-bottom: 1px dashed var(--color-border);
-            display: flex; /* Ubah ke flex */
-            flex-direction: column; /* Tumpuk secara vertikal */
-            align-items: center; /* Tengahkan */
+            display: block !important; /* Pastikan selalu block */
         }
         .welcome-image {
             max-width: 150px; /* Ukuran gambar */
@@ -304,7 +273,6 @@
             margin-bottom: 15px;
         }
         .welcome-marquee {
-            width: 100%; /* Lebar penuh */
             font-weight: 500;
             color: var(--color-accent);
             background-color: #f0f7ff; /* Latar belakang biru muda */
@@ -315,114 +283,138 @@
 
 
         /* Panel Kontrol Saat Permainan Berlangsung */
-        
-        /* Sembunyikan panel kontrol saat pra-permainan */
-        .game-container:not(.game-started) #turn-display,
-        .game-container:not(.game-started) #dice-container,
-        .game-container:not(.game-started) #game-log-container {
-            display: none;
+        .dashboard-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--color-primary);
         }
 
-        /* Info Giliran */
         #turn-display {
-            text-align: center;
-            margin-bottom: 1.5rem;
-        }
-        #turn-text {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 500;
+            /* BARU: Izinkan teks lebih panjang untuk daftar pemenang */
+            text-align: left;
+            line-height: 1.6;
+            background-color: var(--color-bg);
+            padding: 1rem;
+            border-radius: var(--border-radius);
         }
+        
+        #player-turn {
+            font-weight: 700;
+        }
+        
         #player-turn-color {
             display: inline-block;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            border: 2px solid #fff;
-            box-shadow: 0 0 5px rgba(0,0,0,0.2);
-            vertical-align: middle;
-            margin-left: 8px;
+            border: 1px solid rgba(0,0,0,0.2);
+            transform: translateY(2px);
+            margin-left: 5px;
         }
 
-        /* Kontainer Dadu */
         #dice-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 1rem;
-            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background-color: var(--color-bg);
+            border-radius: var(--border-radius);
         }
+
+        .btn {
+            background-color: var(--color-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .btn:hover {
+            background-color: var(--color-primary-dark);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn:disabled {
+            background-color: var(--color-secondary);
+            cursor: not-allowed;
+        }
+
+        /* BARU: Style untuk tombol sekunder (abu-abu) */
+        .btn-secondary {
+            background-color: var(--color-secondary);
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
 
         /* DADU 3D (BARU) */
         .scene {
             width: 100px;
             height: 100px;
             perspective: 600px; /* Perspektif 3D */
-            margin: 1rem auto;
+            margin: 1rem 0; /* Hapus 'auto', biarkan flexbox yg atur */
         }
         .cube {
             width: 100%;
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            transition: transform 1s; /* Transisi saat berhenti */
+            transition: transform 1s;
         }
         .face {
             position: absolute;
             width: 100px;
             height: 100px;
-            border: 2px solid var(--color-dice-dark);
-            border-radius: 4px;
-            background-color: var(--color-dice);
-            color: white;
-            font-size: 3rem;
-            font-weight: 700;
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Memberi padding agar titik terlihat seperti dadu */
-            padding: 10px;
-            line-height: 1;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white; /* Teks putih agar kontras di oranye */
+            background-color: #FB8C00; /* Warna ORANYE */
+            border: 2px solid #E65100; /* Oranye lebih gelap */
+            border-radius: 5px;
         }
-        
-        /* Penempatan sisi-sisi dadu di ruang 3D */
-        .front  { transform: rotateY(  0deg) translateZ(50px); }
-        .back   { transform: rotateY(180deg) translateZ(50px); background-color: var(--color-dice-dark);} /* Sisi 6 */
-        .right  { transform: rotateY( 90deg) translateZ(50px); }
+
+        /* Posisi Sisi-sisi Kubus */
+        .front  { transform: rotateY(0deg) translateZ(50px); }
+        .back   { transform: rotateY(180deg) translateZ(50px); background-color: #FB8C00; } /* Warna ORANYE */
         .left   { transform: rotateY(-90deg) translateZ(50px); }
-        .top    { transform: rotateX( 90deg) translateZ(50px); }
+        .right  { transform: rotateY(90deg) translateZ(50px); }
+        .top    { transform: rotateX(90deg) translateZ(50px); }
         .bottom { transform: rotateX(-90deg) translateZ(50px); }
-        
-        /* Tampilan titik-titik dadu (opsional, teks lebih mudah) */
-        /* Sisi 1 (Depan) */
-        .front::before { content: '1'; }
-        /* Sisi 2 (Kiri) */
-        .left::before { content: '2'; }
-        /* Sisi 3 (Kanan) */
-        .right::before { content: '3'; }
-        /* Sisi 4 (Bawah) */
+
+        /* Teks Angka (Sisi Depan = 1) */
+        .front::before  { content: '1'; }
+        .right::before  { content: '2'; }
+        .left::before   { content: '3'; }
         .bottom::before { content: '4'; }
-        /* Sisi 5 (Atas) */
-        .top::before { content: '5'; }
-        /* Sisi 6 (Belakang) */
-        .back::before { content: '6'; }
+        .top::before    { content: '5'; }
+        .back::before   { content: '6'; }
 
         /* Animasi Berputar */
         @keyframes roll-dice {
-            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-            100% { transform: rotateX(720deg) rotateY(720deg) rotateZ(720deg); }
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(1080deg); } /* 3 putaran penuh di tempat */
         }
         .cube.rolling {
             animation: roll-dice 1s linear;
         }
 
         /* Posisi berhenti untuk setiap angka */
-        /* Kita perlu 2 putaran agar tidak terlihat "mundur" */
-        .cube.show-1 { transform: rotateY(0deg) translateZ(-50px); }
-        .cube.show-2 { transform: rotateY(90deg) translateZ(-50px); } /* Sisi Kiri */
-        .cube.show-3 { transform: rotateY(-90deg) translateZ(-50px); } /* Sisi Kanan */
-        .cube.show-4 { transform: rotateX(90deg) translateZ(-50px); } /* Sisi Bawah */
-        .cube.show-5 { transform: rotateX(-90deg) translateZ(-50px); } /* Sisi Atas */
-        .cube.show-6 { transform: rotateY(180deg) translateZ(-50px); } /* Sisi Belakang */
+        /* MENGHAPUS 'translateZ(-50px)' AGAR TETAP DI TENGAH */
+        .cube.show-1 { transform: rotateY(0deg); }
+        .cube.show-2 { transform: rotateY(90deg); } /* Sisi Kanan */
+        .cube.show-3 { transform: rotateY(-90deg); } /* Sisi Kiri */
+        .cube.show-4 { transform: rotateX(90deg); } /* Sisi Bawah */
+        .cube.show-5 { transform: rotateX(-90deg); } /* Sisi Atas */
+        .cube.show-6 { transform: rotateY(180deg); } /* Sisi Belakang */
         /* Akhir Dadu 3D */
 
         /* BARU: Atur lebar tombol di dalam kontainer dadu */
@@ -433,86 +425,124 @@
 
         /* Log Permainan */
         #game-log-container {
-            margin-top: 1.5rem;
-        }
-        #game-log {
             width: 100%;
-            height: 150px;
+            height: 200px;
+            background-color: var(--color-bg);
             border: 1px solid var(--color-border);
-            border-radius: 8px;
-            padding: 0.75rem;
-            overflow-y: auto; /* Bisa di-scroll */
-            background-color: #fdfdfd;
-            font-size: 0.9rem;
+            border-radius: 5px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            text-align: left;
         }
         #game-log p {
-            margin-bottom: 0.5rem;
-            border-bottom: 1px dashed #eee;
-            padding-bottom: 0.5rem;
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-bottom: 1px solid #e9ecef;
         }
         #game-log p:last-child {
             border-bottom: none;
-            margin-bottom: 0;
         }
 
         /* Modal Pertanyaan */
         #question-modal {
-            display: none; /* Sembunyi secara default */
+            display: none; /* Sembunyi by default */
             position: fixed;
-            z-index: 100;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.6); /* Latar belakang gelap transparan */
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
             justify-content: center;
             align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
         #question-modal.visible {
-            display: flex;
+            opacity: 1;
+            pointer-events: auto;
         }
+
         .modal-content {
-            background-color: #ffffff;
-            margin: auto;
+            background-color: var(--color-surface);
             padding: 2rem;
-            border: 1px solid var(--color-border);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
             width: 90%;
             max-width: 500px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
-            text-align: center;
-            animation: slide-down 0.3s ease-out;
+            text-align: left;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
         }
-        @keyframes slide-down {
-            from { transform: translateY(-30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+
+        /* BARU: Style untuk Modal Aturan (salin dari modal pertanyaan) */
+        #rules-modal {
+            display: none; /* Sembunyi by default */
+            position: fixed;
+            z-index: 1001; /* Di atas modal pertanyaan jika tumpang tindih */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
         }
-        .modal-content h2 {
+        #rules-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        #rules-modal .modal-content {
+            background-color: var(--color-surface);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            width: 90%;
+            max-width: 500px;
+            text-align: left;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto; /* Agar bisa di-scroll jika pendek */
+        }
+        #rules-modal.visible .modal-content {
+            transform: scale(1);
+        }
+        #rules-modal h2 {
+            font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: var(--color-accent);
+            color: var(--color-primary);
+            text-align: center;
         }
-        .modal-content p {
+        #rules-modal ul {
+            margin-left: 20px;
             margin-bottom: 1.5rem;
-            font-size: 1.1rem;
-        }
-        .modal-options {
             display: flex;
             flex-direction: column;
-            gap: 0.75rem;
+            gap: 10px; /* Jarak antar aturan */
         }
-        .modal-options .btn {
-            background-color: #f0f0f0;
-            color: var(--color-text);
-            border: 1px solid var(--color-border);
+        #rules-modal li {
+            font-size: 1rem;
+            line-height: 1.6;
         }
-        .modal-options .btn:hover {
-            background-color: #e0e0e0;
+        #rules-modal .modal-close-btn {
+            display: block;
+            margin: 0 auto; /* Tombol tutup di tengah */
         }
+        /* Akhir Style Modal Aturan */
+
+
         #modal-feedback {
             margin-top: 1rem;
-            font-size: 1rem;
-            font-weight: 500;
+            font-weight: bold;
+            font-size: 1.1rem;
+            height: 20px; /* Alokasi ruang agar tidak lompat */
         }
         #modal-feedback.correct {
             color: var(--color-success);
@@ -529,77 +559,75 @@
     </style>
 </head>
 <body>
-
-    <!-- Kontainer Utama Permainan -->
+    
     <div class="game-container" id="game-container">
-
-        <!-- Panel Kiri -->
+        
+        <!-- PANEL KIRI (PAPAN) -->
         <div class="left-panel">
-            <!-- Konfigurasi Papan Permainan -->
-            <div id="game-board-container">
-                <div id="game-board"></div>
-                <!-- Overlay SVG untuk Ular & Tangga -->
-                <svg id="board-overlay" width="100%" height="100%"></svg>
+            <div id="game-board">
+                <!-- Kotak akan digenerate oleh JS -->
             </div>
+            <!-- Overlay untuk Ular & Tangga -->
+            <svg id="board-overlay"></svg>
         </div>
-
-        <!-- Panel Kanan -->
+        
+        <!-- PANEL KANAN (KONTROL) -->
         <div class="right-panel">
         
-            <!-- Pengaturan Pra-Permainan -->
+            <!-- Pengaturan Pra-Permainan (Baru) -->
             <div id="pre-game-settings">
                 
-                <!-- ELEMEN SELAMAT DATANG -->
+                <!-- ELEMEN BARU DI SINI -->
                 <div class="welcome-elements">
-                    <img src="https://placehold.co/150x80/E3F2FD/007BFF?text=Unsur+Kimia" alt="Ilustrasi Kimia" class="welcome-image"
-                         onerror="this.src='https://placehold.co/150x80/E3F2FD/007BFF?text=Gambar+Gagal+Muat'; this.onerror=null;">
+                    <img src="https://placehold.co/150x80/E3F2FD/007BFF?text=Unsur+Kimia" alt="Ilustrasi Kimia" class="welcome-image">
                     <marquee class="welcome-marquee" behavior="scroll" direction="left">
                         Selamat datang di Ular Tangga Kimia! Masukkan nama dan mulai! Dibuat khusus hanya untuk murid-murid SMA YPS Soroako
                     </marquee>
                 </div>
-                <!-- AKHIR ELEMEN SELAMAT DATANG -->
+                <!-- AKHIR ELEMEN BARU -->
 
                 <div>
                     <label for="player-count">Jumlah Pemain:</label>
                     <select id="player-count">
                         <option value="1">1 Pemain</option>
-                        <option value="2">2 Pemain</option>
+                        <option value="2" selected>2 Pemain</option>
                         <option value="3">3 Pemain</option>
                         <option value="4">4 Pemain</option>
-                        <option value="5" selected>5 Pemain</option>
+                        <option value="5">5 Pemain</option>
                         <option value="6">6 Pemain</option>
                     </select>
                 </div>
-                
+
                 <div id="player-names-container">
-                    <!-- Input nama akan dibuat oleh JS -->
+                    <!-- Input nama akan digenerate oleh JS -->
                     <div class="player-name-input" id="p1-input-div">
                         <label for="p1-name">Pemain 1:</label>
-                        <input type="text" id="p1-name" value="Pemain 1">
+                        <input type="text" id="p1-name" placeholder="Nama Pemain 1">
                     </div>
                     <div class="player-name-input" id="p2-input-div">
                         <label for="p2-name">Pemain 2:</label>
-                        <input type="text" id="p2-name" value="Pemain 2">
+                        <input type="text" id="p2-name" placeholder="Nama Pemain 2">
                     </div>
                     <div class="player-name-input" id="p3-input-div">
                         <label for="p3-name">Pemain 3:</label>
-                        <input type="text" id="p3-name" value="Pemain 3">
+                        <input type="text" id="p3-name" placeholder="Nama Pemain 3">
                     </div>
                     <div class="player-name-input" id="p4-input-div">
                         <label for="p4-name">Pemain 4:</label>
-                        <input type="text" id="p4-name" value="Pemain 4">
+                        <input type="text" id="p4-name" placeholder="Nama Pemain 4">
                     </div>
                     <div class="player-name-input" id="p5-input-div">
                         <label for="p5-name">Pemain 5:</label>
-                        <input type="text" id="p5-name" value="Pemain 5">
+                        <input type="text" id="p5-name" placeholder="Nama Pemain 5">
                     </div>
                     <div class="player-name-input" id="p6-input-div">
                         <label for="p6-name">Pemain 6:</label>
-                        <input type="text" id="p6-name" value="Pemain 6">
+                        <input type="text" id="p6-name" placeholder="Nama Pemain 6">
                     </div>
                 </div>
 
-                <!-- <button id="reset-button" class="btn">Mulai Permainan</button> --> <!-- DIPINDAHKAN DARI SINI -->
+                <!-- BARU: Tombol Aturan Permainan -->
+                <button id="show-rules-btn" class="btn btn-secondary" style="width: 100%; margin-top: 10px;">Aturan Permainan</button>
 
             </div>
             
@@ -612,319 +640,498 @@
 
             <!-- Info Giliran -->
             <div id="turn-display">
-                <span id="turn-text">Giliran: Pemain 1</span>
-                <span id="player-turn-color" style="background-color: #E53935;"></span>
+                Giliran: 
+                <span id="player-turn">Pemain 1</span>
+                <span id="player-turn-color"></span>
             </div>
 
-            <!-- Kontainer Dadu -->
+            <!-- Dadu 3D -->
             <div id="dice-container">
-                <!-- Dadu 3D -->
                 <div class="scene">
                     <div class="cube" id="dice-cube">
                         <div class="face front"></div>
                         <div class="face back"></div>
-                        <div class="face right"></div>
                         <div class="face left"></div>
+                        <div class="face right"></div>
                         <div class="face top"></div>
                         <div class="face bottom"></div>
                     </div>
                 </div>
-                <!-- Tombol Kocok Dadu -->
-                <button id="roll-button" class="btn">Kocok Dadu!</button>
+                <button id="roll-button" class="btn" disabled>Kocok Dadu!</button>
             </div>
 
             <!-- Log Permainan -->
             <div id="game-log-container">
-                <label for="game-log">Log Permainan:</label>
-                <div id="game-log"></div>
+                <div id="game-log">
+                    <p>Silakan pilih jumlah pemain dan masukkan nama.</p>
+                </div>
             </div>
-
         </div>
     </div>
 
     <!-- Modal Pertanyaan -->
     <div id="question-modal">
         <div class="modal-content">
-            <h2>Kuis Unsur Kimia!</h2>
-            <p id="question-text">Ini adalah placeholder pertanyaan.</p>
-            <div class="modal-options" id="question-options">
-                <!-- Opsi akan dibuat oleh JS -->
+            <h2><i class="fas fa-flask"></i> Pertanyaan Kimia!</h2>
+            <p id="question-text">Pertanyaan akan muncul di sini.</p>
+            
+            <!-- BARU: Timer 1 MENIT -->
+            <p id="modal-timer">1:00</p>
+            
+            <div id="options-container">
+                <!-- Opsi jawaban akan digenerate oleh JS -->
             </div>
-            <p id="modal-feedback"></p>
+            <div id="modal-feedback"></div>
         </div>
     </div>
+
+    <!-- BARU: Modal Aturan Permainan -->
+    <div id="rules-modal">
+        <div class="modal-content">
+            <h2>Aturan Permainan</h2>
+            <ul>
+                <li>Pilih 1-6 pemain dan masukkan nama Anda.</li>
+                <li>Klik "Kocok Dadu!" untuk bergerak.</li>
+                <li>Jika mendarat di tangga (garis hijau), Anda akan naik.</li>
+                <li>Jika mendarat di ular (garis merah), Anda akan turun.</li>
+                <li>Jika mendarat di kotak '?', Anda harus menjawab pertanyaan dalam 1 menit.</li>
+                <li>Jika jawaban benar, Anda tetap di posisi.</li>
+                <li>Jika salah atau waktu habis, Anda akan mundur 2 kotak.</li>
+                <li>Jika Anda mendarat di kotak yang sama dengan pemain lain, pemain tersebut akan "ditendang" kembali ke kotak 1.</li>
+                <li>Pemain pertama yang mendarat di kotak 100 (dengan angka pas) akan menang.</li>
+                <li>Pemain lain bisa melanjutkan permainan untuk menentukan Peringkat 2, 3, dan seterusnya.</li>
+            </ul>
+            <button id="close-rules-btn" class="btn modal-close-btn">Tutup</button>
+        </div>
+    </div>
+
 
     <script>
         // --- KONFIGURASI PERMAINAN ---
         const BOARD_SIZE = 100;
-        const BOARD_DIMENSION = 10;
-        
+
         // Peta Ular dan Tangga (Lebih panjang dan dramatis)
+        // Format: [start, end]
         const SNAKES_AND_LADDERS = {
             // Tangga (Naik)
-            5: 78,   // Tangga super panjang
-            15: 36,
-            28: 51,
-            41: 62,
-            67: 88,
-            72: 93,
-            
+            5: 78,  // Tangga super panjang
+            15: 44,
+            23: 59,
+            33: 88, // Tangga panjang
+            50: 91, // Tangga panjang
+            67: 86,
+
             // Ular (Turun)
-            97: 12,  // Ular super panjang
-            85: 31,
-            74: 45,
-            60: 22,
-            49: 9,
-            33: 7
+            97: 12, // Ular super panjang
+            85: 30, // Ular panjang
+            72: 9,
+            61: 25,
+            48: 11,
+            38: 17
         };
 
         // Bank Soal Unsur Kimia
         const QUESTIONS = [
             {
-                q: "Unsur apa yang memiliki lambang 'O'?",
-                o: ["Oksigen", "Osmium", "Karbon", "Emas"],
-                a: 0 // Index jawaban benar (Oksigen)
+                q: "Unsur apa yang memiliki lambang 'O' dan penting untuk pernapasan?",
+                o: ["Oksigen", "Osmium", "Emas", "Nitrogen"],
+                a: 0 // Oksigen
             },
             {
-                q: "Apa lambang kimia untuk 'Emas'?",
-                o: ["Em", "Au", "Ag", "Es"],
-                a: 1 // Au
+                q: "Lambang kimia untuk 'Emas' adalah...",
+                o: ["E", "Em", "Au", "Ag"],
+                a: 2 // Au
             },
             {
-                q: "Unsur mana yang paling melimpah di atmosfer Bumi?",
-                o: ["Oksigen", "Karbon Dioksida", "Nitrogen", "Argon"],
-                a: 2 // Nitrogen
+                q: "Unsur apa yang merupakan komponen utama berlian?",
+                o: ["Silikon", "Karbon", "Oksigen", "Belerang"],
+                a: 1 // Karbon
             },
             {
-                q: "Unsur apa yang digunakan dalam balon agar bisa terbang?",
-                o: ["Hidrogen", "Oksigen", "Neon", "Helium"],
-                a: 3 // Helium
+                q: "Gas apa yang paling melimpah di atmosfer Bumi?",
+                o: ["Oksigen", "Karbon Dioksida", "Argon", "Nitrogen"],
+                a: 3 // Nitrogen
             },
             {
-                q: "Logam apa yang berwujud cair pada suhu kamar?",
-                o: ["Besi", "Raksa (Merkuri)", "Aluminium", "Timah"],
-                a: 1 // Raksa (Merkuri)
+                q: "Unsur apa yang memiliki lambang 'Fe'?",
+                o: ["Fluorin", "Besi", "Francium", "Fosfor"],
+                a: 1 // Besi
             },
             {
-                q: "Apa lambang kimia untuk 'Besi'?",
-                o: ["B", "Be", "Fe", "Fi"],
-                a: 2 // Fe
-            },
-            {
-                q: "Unsur apa yang merupakan komponen utama dalam pensil?",
-                o: ["Timbal", "Besi", "Karbon (Grafit)", "Silikon"],
-                a: 2 // Karbon (Grafit)
-            },
-            {
-                q: "Gas apa yang kita hembuskan saat bernapas?",
-                o: ["Oksigen", "Karbon Dioksida", "Nitrogen", "Hidrogen"],
-                a: 1 // Karbon Dioksida
-            },
-            {
-                q: "Unsur apa yang membuat tulang kita kuat?",
-                o: ["Kalium", "Natrium", "Besi", "Kalsium"],
-                a: 3 // Kalsium
+                q: "Unsur apa yang digunakan dalam termometer (logam cair)?",
+                o: ["Raksa (Merkuri)", "Galium", "Timah", "Perak"],
+                a: 0 // Raksa (Merkuri)
             },
             {
                 q: "Apa lambang kimia untuk 'Perak'?",
-                o: ["P", "Pe", "Au", "Ag"],
+                o: ["P", "Pe", "Si", "Ag"],
                 a: 3 // Ag
             },
             {
-                q: "Unsur mana yang digunakan untuk mensterilkan air di kolam renang?",
-                o: ["Klorin", "Fluorin", "Bromin", "Iodin"],
-                a: 0 // Klorin
+                q: "Gas mulia yang digunakan untuk mengisi balon agar terbang adalah...",
+                o: ["Hidrogen", "Helium", "Neon", "Oksigen"],
+                a: 1 // Helium
+            },
+            {
+                q: "Unsur apa yang memberi warna merah pada darah?",
+                o: ["Tembaga", "Magnesium", "Besi", "Kalsium"],
+                a: 2 // Besi
+            },
+            {
+                q: "Unsur apa yang memiliki lambang 'H'?",
+                o: ["Helium", "Hidrogen", "Merkuri", "Hassium"],
+                a: 1 // Hidrogen
+            },
+            {
+                q: "Garam dapur (NaCl) terdiri dari Natrium dan...?",
+                o: ["Kalium", "Klorin", "Kalsium", "Karbon"],
+                a: 1 // Klorin
             },
             {
                 q: "Unsur apa yang memiliki lambang 'Na'?",
                 o: ["Nitrogen", "Nikel", "Natrium", "Neon"],
                 a: 2 // Natrium
+            },
+            // --- SOAL TAMBAHAN MULAI DARI SINI ---
+            {
+                q: "Apa lambang kimia untuk 'Kalium'?",
+                o: ["Ka", "P", "K", "Ki"],
+                a: 2 // K
+            },
+            {
+                q: "Unsur apa yang membuat lampu neon menyala merah-oranye?",
+                o: ["Argon", "Neon", "Helium", "Kripton"],
+                a: 1 // Neon
+            },
+            {
+                q: "Logam apa yang paling ringan dan digunakan dalam baterai?",
+                o: ["Natrium", "Aluminium", "Litium", "Besi"],
+                a: 2 // Litium
+            },
+            {
+                q: "Unsur apa yang ditambahkan ke pasta gigi untuk mencegah gigi berlubang?",
+                o: ["Fluorin", "Klorin", "Iodin", "Bromin"],
+                a: 0 // Fluorin
+            },
+            {
+                q: "Unsur utama yang membentuk Matahari adalah...",
+                o: ["Oksigen", "Helium", "Besi", "Hidrogen"],
+                a: 3 // Hidrogen
+            },
+            {
+                q: "Apa lambang kimia untuk 'Tembaga' (logam untuk kabel)?",
+                o: ["Te", "Cu", "Tm", "Cb"],
+                a: 1 // Cu
+            },
+            {
+                q: "Bahan utama pembuat kaca dan pasir adalah unsur...",
+                o: ["Silikon", "Natrium", "Kalsium", "Aluminium"],
+                a: 0 // Silikon
+            },
+            {
+                q: "Apa lambang kimia untuk 'Fosfor' (sering di kepala korek api)?",
+                o: ["F", "Fo", "P", "Ph"],
+                a: 2 // P
+            },
+            {
+                q: "Unsur apa yang memiliki lambang 'W' (digunakan untuk filamen lampu bohlam)?",
+                o: ["Wolfram (Tungsten)", "Besi", "Timah", "Uranium"],
+                a: 0 // Wolfram (Tungsten)
+            },
+            {
+                q: "Unsur apa yang digunakan dalam reaktor nuklir?",
+                o: ["Emas", "Uranium", "Platina", "Raksa"],
+                a: 1 // Uranium
+            },
+            {
+                q: "Logam apa yang sering digunakan untuk membuat kaleng minuman ringan?",
+                o: ["Besi", "Timah", "Aluminium", "Seng"],
+                a: 2 // Aluminium
+            },
+            {
+                q: "Apa lambang kimia untuk 'Seng' (sering untuk melapisi baja)?",
+                o: ["S", "Se", "Zi", "Zn"],
+                a: 3 // Zn
+            },
+            {
+                q: "Gas mulia yang digunakan untuk mengisi bola lampu agar awet adalah...",
+                o: ["Argon", "Neon", "Hidrogen", "Oksigen"],
+                a: 0 // Argon
+            }
+            // --- SOAL BARU (NOMOR ATOM & MASSA) MULAI DARI SINI ---
+            , {
+                q: "Berapa nomor atom (jumlah proton) dari Karbon (C)?",
+                o: ["6", "12", "14", "8"],
+                a: 0 // 6
+            },
+            {
+                q: "Unsur dengan 1 proton adalah...",
+                o: ["Helium", "Litium", "Hidrogen", "Oksigen"],
+                a: 2 // Hidrogen
+            },
+            {
+                q: "Nomor massa adalah jumlah dari...",
+                o: ["Elektron dan Proton", "Proton dan Neutron", "Elektron dan Neutron", "Hanya Proton"],
+                a: 1 // Proton dan Neutron
+            },
+            {
+                q: "Jika sebuah atom Oksigen (O) memiliki 8 proton dan 8 neutron, berapa nomor massanya?",
+                o: ["8", "16", "24", "4"],
+                a: 1 // 16
+            },
+            {
+                q: "Lambang 'He' memiliki nomor atom 2. Unsur apakah ini?",
+                o: ["Hidrogen", "Helium", "Hassium", "Boron"],
+                a: 1 // Helium
+            },
+            {
+                q: "Berapa jumlah neutron dalam atom Natrium (Na) dengan nomor massa 23 dan nomor atom 11?",
+                o: ["11", "12", "23", "34"],
+                a: 1 // 12 (karena 23 - 11)
+            },
+            {
+                q: "Nomor atom (Z) menunjukkan jumlah...",
+                o: ["Neutron", "Elektron", "Proton", "Nukleon"],
+                a: 2 // Proton
+            },
+            {
+                q: "Unsur dengan nomor atom 17 dan bersifat halogen adalah...",
+                o: ["Fluorin", "Argon", "Klorin", "Belerang"],
+                a: 2 // Klorin
+            },
+            {
+                q: "Isotop adalah atom dari unsur yang sama dengan jumlah ... yang berbeda.",
+                o: ["Proton", "Elektron", "Neutron", "Nomor Atom"],
+                a: 2 // Neutron
+            },
+            {
+                q: "Berapa nomor massa dari isotop Karbon-14?",
+                o: ["12", "13", "14", "6"],
+                a: 2 // 14
+            },
+            {
+                q: "Jika Litium (Li) memiliki nomor atom 3 dan nomor massa 7, berapa jumlah neutronnya?",
+                o: ["3", "4", "7", "10"],
+                a: 1 // 4 (karena 7 - 3)
+            },
+            {
+                q: "Unsur dengan 92 proton adalah...",
+                o: ["Plutonium", "Emas", "Uranium", "Raksa"],
+                a: 2 // Uranium
             }
         ];
         
         // Kotak yang memiliki pertanyaan (DIPERBANYAK)
         const QUESTION_CELLS = [
-            3, 8, 11, 14, 19, 21, 25, 27, 30, 32, 37, 39,
-            43, 47, 50, 53, 58, 61, 64, 66, 70, 73, 77,
-            81, 84, 87, 90, 92, 95
+            4, 8, 13, 16, 21, 25, 29, 31, 35, 39, 42, 46, 49,
+            52, 55, 58, 62, 65, 69, 71, 74, 77, 81, 83, 87, 89, 92, 95, 99
         ];
 
-        // --- ELEMEN DOM ---
+        // --- Variabel Global ---
+        // DOM Elements
         const board = document.getElementById('game-board');
-        const boardOverlay = document.getElementById('board-overlay');
         const rollButton = document.getElementById('roll-button');
         const resetButton = document.getElementById('reset-button');
         const diceCube = document.getElementById('dice-cube');
-        const turnText = document.getElementById('turn-text');
+        const turnDisplay = document.getElementById('turn-display'); // BARU
+        const turnText = document.getElementById('player-turn');
         const playerTurnColor = document.getElementById('player-turn-color');
         const gameLog = document.getElementById('game-log');
         const gameContainer = document.getElementById('game-container');
         
-        // Modal
-        const modal = document.getElementById('question-modal');
-        const modalQuestion = document.getElementById('question-text');
-        const modalOptions = document.getElementById('question-options');
-        const modalFeedback = document.getElementById('modal-feedback');
-
-        // Pengaturan Pra-Permainan
+        // Pengaturan Pemain
         const playerCountSelect = document.getElementById('player-count');
-        const playerNamesContainer = document.getElementById('player-names-container');
         const playerNameInputs = [
-            document.getElementById('p1-name'), document.getElementById('p2-name'),
-            document.getElementById('p3-name'), document.getElementById('p4-name'),
-            document.getElementById('p5-name'), document.getElementById('p6-name')
+            document.getElementById('p1-name'),
+            document.getElementById('p2-name'),
+            document.getElementById('p3-name'),
+            document.getElementById('p4-name'),
+            document.getElementById('p5-name'),
+            document.getElementById('p6-name')
         ];
         const playerNameInputDivs = [
-            document.getElementById('p1-input-div'), document.getElementById('p2-input-div'),
-            document.getElementById('p3-input-div'), document.getElementById('p4-input-div'),
-            document.getElementById('p5-input-div'), document.getElementById('p6-input-div')
+            document.getElementById('p1-input-div'),
+            document.getElementById('p2-input-div'),
+            document.getElementById('p3-input-div'),
+            document.getElementById('p4-input-div'),
+            document.getElementById('p5-input-div'),
+            document.getElementById('p6-input-div')
         ];
 
-        // --- STATUS PERMAINAN ---
-        let currentNumPlayers = 5;
+        // Modal Elements
+        const modal = document.getElementById('question-modal');
+        const modalQuestion = document.getElementById('question-text');
+        const modalOptions = document.getElementById('options-container');
+        const modalFeedback = document.getElementById('modal-feedback');
+        const modalTimerDisplay = document.getElementById('modal-timer'); // BARU
+
+        // BARU: Modal Aturan Elements
+        const rulesModal = document.getElementById('rules-modal');
+        const showRulesBtn = document.getElementById('show-rules-btn');
+        const closeRulesBtn = document.getElementById('close-rules-btn');
+
+        // Status Permainan
         let players = [];
+        let currentNumPlayers = 2; // Default
         let currentPlayerIndex = 0;
         let isGameActive = false;
         let isRolling = false; // Mencegah klik ganda saat dadu berputar
         let isModalActive = false; // Mencegah dadu dikocok saat modal aktif
+        let finishRanking = []; // BARU: Untuk melacak urutan pemenang
+
+        // Timer Pertanyaan (BARU: 60 DETIK)
+        const QUESTION_TIME_LIMIT = 60; // 1 menit = 60 detik
+        let questionTimer; // Variabel untuk menyimpan interval
+        let timeLeft; // Variabel untuk sisa waktu
 
         const playerColors = ['#E53935', '#1E88E5', '#43A047', '#FDD835', '#8E24AA', '#FB8C00'];
         const playerTextColors = ['#FFFFFF', '#FFFFFF', '#FFFFFF', '#333333', '#FFFFFF', '#FFFFFF'];
 
-        // --- FUNGSI ---
+        // --- Fungsi Utama Permainan ---
 
         /**
          * Inisialisasi Papan Permainan
          */
         function createBoard() {
             board.innerHTML = ''; // Kosongkan papan
-            let cells = [];
+            const cells = [];
             for (let i = 0; i < BOARD_SIZE; i++) {
-                cells.push(`<div class="cell" data-number="${i + 1}"><span>${i + 1}</span></div>`);
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cells.push(cell);
             }
 
-            // Balik urutan baris-baris genap untuk pola Ular Tangga
-            let boardHTML = '';
-            for (let row = BOARD_DIMENSION - 1; row >= 0; row--) {
-                let rowCells = cells.slice(row * BOARD_DIMENSION, (row + 1) * BOARD_DIMENSION);
-                if (row % 2 === 0) { // Baris 0, 2, 4, ... (dihitung dari bawah)
-                    // Tidak perlu dibalik (karena kita membangun dari atas ke bawah)
+            // Atur urutan kotak (bolak-balik)
+            const
+            orderedCells = [];
+            for (let i = 0; i < 10; i++) {
+                const row = cells.slice(i * 10, (i + 1) * 10);
+                if (i % 2 === 0) {
+                    orderedCells.push(...row.reverse()); // Baris genap (dari bawah): 10-1, 30-21, dst.
                 } else {
-                    rowCells.reverse();
+                    orderedCells.push(...row); // Baris ganjil (dari bawah): 11-20, 31-40, dst.
                 }
-                // Tambahkan data-row untuk styling
-                boardHTML += rowCells.map(cell => cell.replace('<div class="cell"', `<div class="cell" data-row="${row}"`)).join('');
             }
-            board.innerHTML = boardHTML;
-            
-            // Tandai kotak pertanyaan
-            QUESTION_CELLS.forEach(qCell => {
-                const cell = board.querySelector(`[data-number="${qCell}"]`);
-                if(cell) cell.classList.add('question-cell');
+            orderedCells.reverse(); // Balik semua agar 1 di kiri bawah
+
+            // Beri nomor dan tambahkan ke DOM
+            orderedCells.forEach((cell, index) => {
+                const cellNumber = index + 1;
+                cell.setAttribute('data-number', cellNumber);
+                
+                // Tambahkan tanda tanya '?'
+                if (QUESTION_CELLS.includes(cellNumber)) {
+                    const mark = document.createElement('span');
+                    mark.classList.add('question-mark');
+                    mark.textContent = '?';
+                    cell.appendChild(mark);
+                }
+                
+                board.appendChild(cell);
             });
         }
         
         /**
-         * Menggambar Ular dan Tangga di Papan
+         * Menggambar Ular dan Tangga (BARU)
          */
         function drawSnakesAndLadders() {
-            boardOverlay.innerHTML = ''; // Bersihkan garis lama
-            const boardRect = board.getBoundingClientRect();
-            
-            for (const [start, end] of Object.entries(SNAKES_AND_LADDERS)) {
-                const cellStart = board.querySelector(`[data-number="${start}"]`);
-                const cellEnd = board.querySelector(`[data-number="${end}"]`);
+            const overlay = document.getElementById('board-overlay');
+            overlay.innerHTML = ''; // Bersihkan garis lama
 
-                if (!cellStart || !cellEnd) continue;
-
-                // Dapatkan posisi relatif dari kotak
-                const startRect = cellStart.getBoundingClientRect();
-                const endRect = cellEnd.getBoundingClientRect();
-
-                // Hitung titik tengah relatif terhadap #game-board-container
-                const x1 = ((startRect.left + startRect.right) / 2 - boardRect.left) / boardRect.width * 100;
-                const y1 = ((startRect.top + startRect.bottom) / 2 - boardRect.top) / boardRect.height * 100;
-                const x2 = ((endRect.left + endRect.right) / 2 - boardRect.left) / boardRect.width * 100;
-                const y2 = ((endRect.top + endRect.bottom) / 2 - boardRect.top) / boardRect.height * 100;
-
-                const isLadder = end > start;
-                const color = isLadder ? 'var(--color-ladder)' : 'var(--color-snake)';
-
-                // Buat elemen <line> SVG
-                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-                line.setAttribute('x1', `${x1}%`);
-                line.setAttribute('y1', `${y1}%`);
-                line.setAttribute('x2', `${x2}%`);
-                line.setAttribute('y2', `${y2}%`);
-                line.setAttribute('stroke', color);
+            for (const startPos of Object.keys(SNAKES_AND_LADDERS)) {
+                const endPos = SNAKES_AND_LADDERS[startPos];
                 
-                boardOverlay.appendChild(line);
+                const startCell = document.querySelector(`.cell[data-number="${startPos}"]`);
+                const endCell = document.querySelector(`.cell[data-number="${endPos}"]`);
+
+                if (!startCell || !endCell) continue;
+
+                const startRect = startCell.getBoundingClientRect();
+                const endRect = endCell.getBoundingClientRect();
+                const boardRect = board.getBoundingClientRect();
+
+                // Hitung (x,y) tengah relatif terhadap papan
+                const startX = startRect.left + startRect.width / 2 - boardRect.left;
+                const startY = startRect.top + startRect.height / 2 - boardRect.top;
+                const endX = endRect.left + endRect.width / 2 - boardRect.left;
+                const endY = endRect.top + endRect.height / 2 - boardRect.top;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', startX);
+                line.setAttribute('y1', startY);
+                line.setAttribute('x2', endX);
+                line.setAttribute('y2', endY);
+                
+                // Tentukan warna (ular/tangga)
+                const isSnake = startPos > endPos;
+                line.setAttribute('stroke', isSnake ? 'var(--color-danger)' : 'var(--color-success)');
+                
+                overlay.appendChild(line);
             }
         }
 
-
         /**
-         * Inisialisasi Permainan
+         * Memulai atau Mengulang Permainan
          */
         function initGame() {
             // Baca jumlah pemain & nama dari input
             currentNumPlayers = parseInt(playerCountSelect.value);
             players = [];
+            finishRanking = []; // BARU: Reset daftar pemenang
             
             board.innerHTML = ''; // Hapus pion-pion lama jika ada
-            createBoard(); // Buat papan (lagi)
+            createBoard(); // Buat papan baru
+            drawSnakesAndLadders(); // Gambar ular tangga
 
             for (let i = 0; i < currentNumPlayers; i++) {
-                // Buat data pemain
                 players.push({
                     id: i,
                     name: playerNameInputs[i].value || `Pemain ${i+1}`, // Ambil nama dari input
                     position: 0, // Posisi 0 = Start
                     color: playerColors[i],
-                    textColor: playerTextColors[i]
+                    textColor: playerTextColors[i],
+                    hasFinished: false // BARU: Tandai pemain belum selesai
                 });
 
                 // Buat elemen pion
                 const pawn = document.createElement('div');
-                pawn.className = 'pawn';
-                pawn.id = `pawn-${i}`;
-                pawn.dataset.pawnId = i;
+                pawn.classList.add('pawn');
+                pawn.setAttribute('data-player-id', i);
+                pawn.setAttribute('id', `pawn-${i}`);
                 pawn.style.backgroundColor = players[i].color;
                 pawn.style.color = players[i].textColor;
-                pawn.innerText = i + 1; // Tampilkan nomor pemain di pion
+                pawn.innerHTML = `<i class="fas fa-chess-pawn"></i>`; // Ganti dengan ikon jika mau
                 board.appendChild(pawn);
-
-                // Tempatkan pion di kotak 1 (posisi 0)
+                
+                // Tempatkan di posisi awal (visual di kotak 1)
                 movePawnVisual(i, 0);
             }
-            
-            drawSnakesAndLadders(); // Gambar ular tangga setelah papan siap
 
             currentPlayerIndex = 0;
             isGameActive = true;
             isRolling = false;
             gameLog.innerHTML = '<p>Selamat datang! Permainan dimulai.</p>';
+            playerTurnColor.style.display = 'inline-block'; // BARU: Pastikan terlihat
             updateTurnDisplay();
             
             // Tampilkan/Sembunyikan UI
             gameContainer.classList.add('game-started');
-            resetButton.textContent = 'Mulai Ulang';
+            rollButton.disabled = false;
+            resetButton.textContent = "Mulai Ulang Permainan";
         }
 
         /**
-         * Memindahkan Bidak (Pion) secara Visual
+         * Memindahkan Pion secara Visual
          */
         function movePawnVisual(playerId, newPosition) {
             const pawn = document.getElementById(`pawn-${playerId}`);
-            if (!pawn) return;
-
             let targetCell;
-            
+
             if (newPosition === 0) {
-                // Posisi 0 berarti "Start", tempatkan di kotak 1
-                targetCell = board.querySelector('.cell[data-number="1"]');
+                // Posisi "Start" (secara visual di kotak 1)
+                targetCell = document.querySelector('.cell[data-number="1"]');
             } else {
-                targetCell = board.querySelector(`.cell[data-number="${newPosition}"]`);
+                targetCell = document.querySelector(`.cell[data-number="${newPosition}"]`);
             }
 
             if (targetCell) {
@@ -934,22 +1141,45 @@
         }
 
         /**
-         * Mengocok Dadu (Versi 3D)
+         * Mengupdate Tampilan Giliran
+         */
+        function updateTurnDisplay() {
+            if (!isGameActive) return;
+            const player = players[currentPlayerIndex];
+            // Tampilkan giliran normal
+            turnDisplay.innerHTML = `Giliran: <span id="player-turn">${player.name}</span> <span id="player-turn-color"></span>`;
+            // Perlu menemukan elemen lagi karena innerHTML ditimpa
+            document.getElementById('player-turn-color').style.backgroundColor = player.color;
+        }
+
+        /**
+         * Menambahkan Pesan ke Log
+         */
+        function addLog(message) {
+            gameLog.innerHTML += `<p>${message}</p>`;
+            gameLog.scrollTop = gameLog.scrollHeight; // Auto-scroll ke bawah
+        }
+
+        /**
+         * Logika Mengocok Dadu
          */
         function rollDice() {
             if (isRolling || !isGameActive || isModalActive) return;
+
             isRolling = true;
             rollButton.disabled = true;
-
-            const roll = Math.floor(Math.random() * 6) + 1;
             
-            // Logika Dadu 3D
+            // 1. Tambahkan kelas animasi berputar
             diceCube.classList.remove('show-1', 'show-2', 'show-3', 'show-4', 'show-5', 'show-6');
             diceCube.classList.add('rolling');
-            
-            // Hentikan putaran setelah 1 detik
+
+            const roll = Math.floor(Math.random() * 6) + 1;
+
+            // 2. Tunggu animasi selesai
             setTimeout(() => {
                 diceCube.classList.remove('rolling');
+                
+                // 3. Tampilkan hasil dadu
                 diceCube.classList.add(`show-${roll}`);
                 
                 // Lanjutkan logika permainan setelah dadu berhenti berputar
@@ -961,6 +1191,17 @@
 
             }, 1000); // Durasi animasi putaran
         }
+        
+        /**
+         * BARU: Fungsi untuk memicu confetti
+         */
+        function triggerConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
 
         /**
          * Memproses Gerakan Pemain
@@ -970,119 +1211,264 @@
             const oldPosition = player.position;
             let newPosition = oldPosition + roll;
 
-            // Log ke konsol
-            addLog(`[${player.name}] mengocok dadu: ${roll}.`);
+            addLog(`[${player.name}] melempar dadu: ${roll}. Bergerak dari ${oldPosition} ke ${newPosition}.`);
 
-            // Logika menang
+            // Logika Menang
             if (newPosition > BOARD_SIZE) {
                 newPosition = oldPosition; // Tidak bergerak jika melebihi 100
                 addLog(`[${player.name}] butuh angka pas untuk menang.`);
             } else if (newPosition === BOARD_SIZE) {
+                // --- LOGIKA MENANG BARU ---
                 player.position = newPosition;
                 movePawnVisual(player.id, newPosition);
-                addLog(`🎉 [${player.name}] MENANG! Selamat! 🎉`);
-                endGame(player);
-                return;
+                
+                if (!player.hasFinished) { // Hanya trigger jika ini kali pertama dia sampai
+                    player.hasFinished = true;
+                    finishRanking.push(player.name);
+                    const place = finishRanking.length;
+                    
+                    addLog(`🎉 **[${player.name}] selesai di urutan ke-${place}! 🏆**`);
+                    triggerConfetti(); // Tembakkan confetti!
+                    
+                    const activePlayersLeft = players.filter(p => !p.hasFinished).length;
+                    if (activePlayersLeft === 0) {
+                        endGame(); // Permainan berakhir karena semua selesai
+                        return; // Hentikan proses, jangan panggil nextPlayer
+                    }
+                }
+                // --- AKHIR LOGIKA MENANG BARU ---
             }
 
             player.position = newPosition;
             movePawnVisual(player.id, newPosition);
-            addLog(`[${player.name}] bergerak dari ${oldPosition} ke ${newPosition}.`);
 
             // Cek Ular atau Tangga
-            if (SNAKES_AND_LADDERS[newPosition]) {
-                const destination = SNAKES_AND_LADDERS[newPosition];
-                const isLadder = destination > newPosition;
+            const snakeOrLadder = SNAKES_AND_LADDERS[newPosition];
+            if (snakeOrLadder) {
+                const type = snakeOrLadder > newPosition ? "Tangga" : "Ular";
+                addLog(`[${player.name}] menemukan ${type} di ${newPosition}! Pindah ke ${snakeOrLadder}.`);
+                player.position = snakeOrLadder;
                 
-                addLog(isLadder ? 
-                    `[${player.name}] menemukan tangga! 🪜 Naik ke ${destination}.` :
-                    `[${player.name}] tergigit ular! 🐍 Turun ke ${destination}.`
-                );
-                
-                // Tambahkan penundaan untuk efek dramatis
+                // Animasi pindah (delay 0.5 detik)
                 setTimeout(() => {
-                    player.position = destination;
-                    movePawnVisual(player.id, destination);
+                    movePawnVisual(player.id, finalPosition);
+                    // Cek lagi jika mendarat di 100
+                    if (snakeOrLadder === BOARD_SIZE && !player.hasFinished) {
+                        player.hasFinished = true;
+                        finishRanking.push(player.name);
+                        const place = finishRanking.length;
+                        addLog(`🎉 **[${player.name}] selesai di urutan ke-${place}! 🏆**`);
+                        triggerConfetti();
+                    }
                     
-                    // Cek pertanyaan setelah pindah
-                    checkSpecialCell(destination);
-                }, 1000); // Tunggu 1 detik
+                    // JALANKAN KICK CHECK DI SINI (SETELAH ULAR/TANGGA)
+                    checkAndApplyKick(player, finalPosition); 
+                    
+                    checkEndCondition(finalPosition); // Cek pertanyaan
+                }, 600); // Delay untuk animasi
             } else {
-                // Cek pertanyaan
-                checkSpecialCell(newPosition);
+                // TIDAK ada ular/tangga
+                finalPosition = newPosition; // Tetap posisi baru
+                
+                // JALANKAN KICK CHECK DI SINI (SETELAH GERAK BIASA)
+                checkAndApplyKick(player, finalPosition); 
+                
+                checkEndCondition(finalPosition); // Cek pertanyaan
             }
         }
         
         /**
-         * Cek apakah sel adalah sel spesial (pertanyaan, dll)
+         * Memeriksa Kondisi Akhir Giliran (Pertanyaan atau Pindah Pemain)
          */
-        function checkSpecialCell(position) {
-            // Cek Kotak Pertanyaan
-            if (QUESTION_CELLS.includes(position)) {
-                setTimeout(() => {
-                    askQuestion();
-                }, 500); // Tampilkan modal setelah 0.5 detik
+        function checkEndCondition(currentPosition) {
+            // Jika pemain sudah selesai, langsung lanjut
+            if (players[currentPlayerIndex].hasFinished) {
+                nextPlayer();
+                return;
+            }
+            
+            // Cek Pertanyaan
+            if (QUESTION_CELLS.includes(currentPosition)) {
+                addLog(`[${players[currentPlayerIndex].name}] mendarat di kotak pertanyaan!`);
+                isModalActive = true;
+                setTimeout(() => askQuestion(), 500); // Tunda sedikit
             } else {
-                // Jika tidak ada apa-apa, langsung ganti pemain
-                setTimeout(() => {
-                    nextPlayer();
-                }, 500);
+                // Tidak ada pertanyaan, lanjut pemain berikutnya
+                nextPlayer();
             }
         }
-        
+
+        /**
+         * BARU: Cek dan terapkan tendangan jika mendarat di pemain lain
+         */
+        function checkAndApplyKick(currentPlayer, landingPosition) {
+            // Tidak ada tendangan di kotak 1 (Start) atau 100 (Finish)
+            if (landingPosition === 1 || landingPosition === BOARD_SIZE) {
+                return;
+            }
+
+            for (const otherPlayer of players) {
+                // Jangan tendang diri sendiri atau pemain yang sudah selesai
+                if (otherPlayer.id === currentPlayer.id || otherPlayer.hasFinished) {
+                    continue;
+                }
+
+                // Jika ada pemain lain di posisi yang sama
+                if (otherPlayer.position === landingPosition) {
+                    addLog(`💥 **TENDANG!** [${currentPlayer.name}] mendarat di [${otherPlayer.name}]!`);
+                    addLog(`[${otherPlayer.name}] kembali ke kotak 1.`);
+                    
+                    // Kembalikan pemain yang ditendang ke posisi 0 (visual di 1)
+                    otherPlayer.position = 0;
+                    
+                    // Pindahkan pion pemain yang ditendang
+                    // Delay sedikit agar perpindahannya terlihat setelah pion penendang mendarat
+                    setTimeout(() => {
+                        movePawnVisual(otherPlayer.id, 0);
+                    }, 100); // Delay singkat
+                }
+            }
+        }
+
         /**
          * Menampilkan Modal Pertanyaan
          */
         function askQuestion() {
-            isModalActive = true; // Permainan dijeda
-            const q = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+            const player = players[currentPlayerIndex];
+            const qIndex = Math.floor(Math.random() * QUESTIONS.length);
+            const question = QUESTIONS[qIndex];
             
-            modalQuestion.textContent = q.q;
-            modalOptions.innerHTML = ''; // Kosongkan opsi lama
-            modalFeedback.textContent = '';
+            // Simpan jawaban benar di tombol untuk dicek
+            modalQuestion.dataset.answer = question.a;
+            modalQuestion.textContent = question.q;
             
-            // Simpan jawaban benar ke elemen modal untuk dicek nanti
-            modal.dataset.correctAnswer = q.a; 
-            
-            q.o.forEach((option, index) => {
-                const btn = document.createElement('button');
-                btn.className = 'btn';
-                btn.textContent = option;
-                btn.dataset.index = index;
-                btn.onclick = checkAnswer;
-                modalOptions.appendChild(btn);
+            modalOptions.innerHTML = '';
+            question.o.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.classList.add('option-btn');
+                button.textContent = option;
+                button.dataset.index = index;
+                button.onclick = checkAnswer;
+                modalOptions.appendChild(button);
             });
             
+            modalFeedback.textContent = '';
+            
+            // Mulai Timer (BARU)
+            timeLeft = QUESTION_TIME_LIMIT;
+            modalTimerDisplay.textContent = formatTime(timeLeft);
+            modalTimerDisplay.style.color = 'var(--color-danger)'; // Reset warna
+            
+            questionTimer = setInterval(() => {
+                timeLeft--;
+                modalTimerDisplay.textContent = formatTime(timeLeft);
+                if (timeLeft <= 10) {
+                    modalTimerDisplay.style.color = 'red'; // Warna merah saat kritis
+                }
+                if (timeLeft <= 0) {
+                    handleTimeUp();
+                }
+            }, 1000);
+
             modal.classList.add('visible');
         }
         
         /**
-         * Memeriksa Jawaban dari Modal
+         * BARU: Format waktu (detik ke m:ss)
          */
-        function checkAnswer(event) {
-            const selectedIndex = parseInt(event.target.dataset.index);
-            const correctIndex = parseInt(modal.dataset.correctAnswer);
-            const player = players[currentPlayerIndex];
-
-            // Nonaktifkan semua tombol
-            modalOptions.querySelectorAll('button').forEach(btn => btn.disabled = true);
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+        
+        /**
+         * BARU: Menangani jika waktu habis
+         */
+        function handleTimeUp() {
+            clearInterval(questionTimer); // Hentikan timer
+            modalFeedback.textContent = `Waktu Habis! Anda mundur 2 kotak.`;
+            modalFeedback.className = 'incorrect';
+            disableOptions();
             
-            if (selectedIndex === correctIndex) {
-                modalFeedback.textContent = "Benar! Jawaban Anda tepat.";
-                modalFeedback.className = 'correct';
-                addLog(`[${player.name}] menjawab pertanyaan dengan BENAR.`);
-            } else {
-                modalFeedback.textContent = "Salah. Coba lagi nanti!";
-                modalFeedback.className = 'incorrect';
-                addLog(`[${player.name}] menjawab pertanyaan dengan SALAH.`);
-            }
+            applyPenalty(players[currentPlayerIndex], "waktu habis");
             
-            // Tutup modal dan lanjutkan permainan
             setTimeout(() => {
                 modal.classList.remove('visible');
                 isModalActive = false;
-                nextPlayer(); // Lanjutkan ke pemain berikutnya
-            }, 1500); // Tampilkan feedback selama 1.5 detik
+                nextPlayer();
+            }, 2000);
+        }
+
+        /**
+         * Memeriksa Jawaban dari Modal
+         */
+        function checkAnswer(event) {
+            clearInterval(questionTimer); // Hentikan timer (BARU)
+            
+            const selectedIndex = parseInt(event.target.dataset.index);
+            const correctIndex = parseInt(modalQuestion.dataset.answer);
+            const player = players[currentPlayerIndex];
+
+            disableOptions(); // Nonaktifkan tombol setelah menjawab
+
+            if (selectedIndex === correctIndex) {
+                // Jawaban Benar
+                modalFeedback.textContent = "Benar! Tetap di posisi.";
+                modalFeedback.className = 'correct';
+                event.target.classList.add('correct');
+                addLog(`[${player.name}] menjawab benar.`);
+                
+                setTimeout(() => {
+                    modal.classList.remove('visible');
+                    isModalActive = false;
+                    nextPlayer();
+                }, 1500);
+
+            } else {
+                // Jawaban Salah (BARU: Terapkan penalti)
+                modalFeedback.textContent = `Salah! Jawaban benar: ${QUESTIONS.find(q => q.q === modalQuestion.textContent).o[correctIndex]}. Anda mundur 2 kotak.`;
+                modalFeedback.className = 'incorrect';
+                event.target.classList.add('incorrect');
+                
+                applyPenalty(player, "jawaban salah");
+                
+                setTimeout(() => {
+                    modal.classList.remove('visible');
+                    isModalActive = false;
+                    nextPlayer();
+                }, 3000); // Waktu lebih lama untuk membaca jawaban benar
+            }
+        }
+        
+        /**
+         * BARU: Menerapkan penalti (mundur 2 kotak)
+         */
+        function applyPenalty(player, reason) {
+            addLog(`[${player.name}] ${reason}, mundur 2 kotak.`);
+            
+            let newPosition = player.position - 2;
+            if (newPosition < 1) {
+                newPosition = 1; // Jangan sampai kurang dari 1
+            }
+            
+            player.position = newPosition;
+            
+            // Delay sedikit agar terlihat efeknya
+            setTimeout(() => {
+                movePawnVisual(player.id, newPosition);
+                addLog(`[${player.name}] pindah ke kotak ${newPosition}.`);
+            }, 500);
+        }
+
+        /**
+         * Nonaktifkan Tombol Opsi
+         */
+        function disableOptions() {
+            const buttons = modalOptions.getElementsByTagName('button');
+            for (let btn of buttons) {
+                btn.disabled = true;
+            }
         }
 
         /**
@@ -1091,94 +1477,115 @@
         function nextPlayer() {
             if (!isGameActive) return; // Jangan ganti pemain jika game sudah selesai
             
-            currentPlayerIndex = (currentPlayerIndex + 1) % currentNumPlayers;
+            const activePlayersLeft = players.filter(p => !p.hasFinished).length;
+            if (activePlayersLeft === 0) {
+                endGame();
+                return;
+            }
+
+            let nextIndex = (currentPlayerIndex + 1) % currentNumPlayers;
+            
+            // Terus berputar sampai menemukan pemain yang BELUM selesai
+            while (players[nextIndex].hasFinished) {
+                nextIndex = (nextIndex + 1) % currentNumPlayers;
+            }
+            
+            currentPlayerIndex = nextIndex;
             updateTurnDisplay();
             rollButton.disabled = false; // Aktifkan tombol dadu untuk pemain berikutnya
         }
 
         /**
-         * Mengakhiri Permainan
+         * Mengakhiri Permainan (BARU: Tampilkan Pemenang)
          */
-        function endGame(winner) {
+        function endGame() {
             isGameActive = false;
             rollButton.disabled = true;
-            turnText.textContent = `Pemenangnya ${winner.name}!`;
-            playerTurnColor.style.backgroundColor = winner.color;
+            addLog("🏁 **Permainan Selesai!** Semua pemain telah finish.");
+            
+            // Buat HTML untuk daftar pemenang
+            let winnerHtml = "<strong>🏁 Permainan Selesai! 🏁</strong><br><br><strong>Peringkat Pemenang:</strong><br>";
+            finishRanking.forEach((name, index) => {
+                let emoji = "";
+                if (index === 0) emoji = "🥇";
+                if (index === 1) emoji = "🥈";
+                if (index === 2) emoji = "🥉";
+                winnerHtml += `${emoji} Juara ${index + 1}: ${name}<br>`;
+            });
+            
+            // Tampilkan daftar pemenang di panel giliran
+            turnDisplay.innerHTML = winnerHtml;
+            // playerTurnColor.style.display = 'none'; // Sudah terhapus oleh innerHTML
         }
 
         /**
-         * Memperbarui Tampilan Info Giliran
+         * Mengatur Ulang Permainan
          */
-        function updateTurnDisplay() {
-            const player = players[currentPlayerIndex];
-            turnText.textContent = `Giliran: ${player.name}`;
-            playerTurnColor.style.backgroundColor = player.color;
+        function resetGame() {
+            isGameActive = false;
+            gameContainer.classList.remove('game-started'); // Kembali ke menu awal
+            resetButton.textContent = "Mulai Permainan";
+            gameLog.innerHTML = '<p>Silakan pilih jumlah pemain dan masukkan nama.</p>';
+            board.innerHTML = ''; // Hapus papan dan pion
+            document.getElementById('board-overlay').innerHTML = ''; // Hapus garis
+            
+            // Reset tampilan giliran ke default
+            turnDisplay.innerHTML = `Giliran: <span id="player-turn">Pemain 1</span> <span id="player-turn-color"></span>`;
         }
-        
+
         /**
-         * Menambahkan pesan ke Log Permainan
-         */
-        function addLog(message) {
-            const p = document.createElement('p');
-            p.textContent = message;
-            gameLog.prepend(p); // Tambahkan di atas (seperti chat)
-        }
-        
-        /**
-         * Memperbarui Input Nama Pemain berdasarkan Dropdown
+         * BARU: Mengupdate input nama berdasarkan jumlah pemain
          */
         function updatePlayerNameInputs() {
             const count = parseInt(playerCountSelect.value);
             for (let i = 0; i < 6; i++) {
                 if (i < count) {
-                    // Tampilkan input nama
                     playerNameInputDivs[i].style.display = 'flex';
                 } else {
-                    // Sembunyikan input nama
                     playerNameInputDivs[i].style.display = 'none';
                 }
             }
         }
+
+        // --- Event Listeners ---
+        window.addEventListener('load', () => {
+            // initGame(); // Jangan mulai otomatis
+            updatePlayerNameInputs(); // Tampilkan input nama default
+        });
         
-        /**
-         * Reset/Mulai Ulang Permainan
-         */
-        function handleReset() {
-            // Jika permainan sedang berjalan, reset
-            if (gameContainer.classList.contains('game-started')) {
-                gameContainer.classList.remove('game-started');
-                resetButton.textContent = 'Mulai Permainan';
-                board.innerHTML = ''; // Hapus papan dan pion
-                boardOverlay.innerHTML = ''; // Hapus garis
+        // Resize listener untuk menggambar ulang ular/tangga
+        window.addEventListener('resize', () => {
+            if (isGameActive) {
+                drawSnakesAndLadders();
+            }
+        });
+
+        rollButton.addEventListener('click', rollDice);
+        resetButton.addEventListener('click', () => {
+            if (isGameActive) {
+                resetGame();
             } else {
-                // Jika di halaman muka, mulai
                 initGame();
             }
-        }
-
-
-        // --- EVENT LISTENERS ---
-        rollButton.addEventListener('click', rollDice);
-        resetButton.addEventListener('click', handleReset);
+        });
+        
         playerCountSelect.addEventListener('change', updatePlayerNameInputs);
 
-        // --- INISIALISASI SAAT HALAMAN DIMUAT ---
-        // Sembunyikan judul dashboard saat awal
-        document.querySelector('.dashboard-title').style.display = 'none';
-        
-        // Tampilkan pengaturan yang sesuai saat halaman dimuat
-        updatePlayerNameInputs();
-        
-        // Ubah tampilan judul berdasarkan status permainan
-        const observer = new MutationObserver(mutations => {
-            mutations.forEach(mutation => {
-                if (mutation.attributeName === 'class') {
-                    const isStarted = gameContainer.classList.contains('game-started');
-                    document.querySelector('.dashboard-title').style.display = isStarted ? 'block' : 'none';
-                }
-            });
+        // BARU: Event Listeners untuk Modal Aturan
+        showRulesBtn.addEventListener('click', () => {
+            rulesModal.classList.add('visible');
         });
-        observer.observe(gameContainer, { attributes: true });
+
+        closeRulesBtn.addEventListener('click', () => {
+            rulesModal.classList.remove('visible');
+        });
+        
+        // Menutup modal jika klik di luar area konten
+        rulesModal.addEventListener('click', (event) => {
+            if (event.target === rulesModal) {
+                rulesModal.classList.remove('visible');
+            }
+        });
 
     </script>
 
