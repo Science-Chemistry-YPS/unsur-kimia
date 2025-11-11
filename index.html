@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ular Tangga: Unsur-Unsur Kimia</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* [IMPERATIF] Aturan CSS Universal untuk Inter */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --board-size: 100;
+            --cell-count: 10;
+            --cell-size: calc(100% / var(--cell-count));
+            
+            /* 6 Warna Pemain yang Berbeda dan Cerah */
+            --player-1: #E53935; /* Merah */
+            --player-2: #1E88E5; /* Biru */
+            --player-3: #43A047; /* Hijau */
+            --player-4: #FDD835; /* Kuning */
+            --player-5: #8E24AA; /* Ungu */
+            --player-6: #FB8C00; /* Oranye */
+
+            --pawn-size: 18px; /* Ukuran bidak */
+            
+            --color-bg: #f7f9fc;
+            --color-text: #333;
+            --color-border: #e0e0e0;
+            --color-accent: #007bff;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: var(--color-accent);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Kontainer Utama Permainan */
+        .game-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        /* Panel Sebelah Kiri (Papan Permainan) */
+        .left-panel {
+            flex: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 320px;
+        }
+
+        /* Panel Sebelah Kanan (Kontrol) */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            min-width: 300px;
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            border: 1px solid var(--color-border);
+        }
+
+        /* Penyesuaian papan agar responsif, terutama untuk Chromebook */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(var(--cell-count), 1fr);
+            grid-template-rows: repeat(var(--cell-count), 1fr);
+            
+            width: 100%;
+            /* Menjaga rasio 1:1 */
+            aspect-ratio: 1 / 1; 
+            
+            /* Membatasi ukuran berdasarkan tinggi layar (vh) */
+            max-width: 85vh; 
+            max-height: 85vh;
+            
+            margin: auto;
+            border: 6px solid #b0bec5;
+            background-color: #eceff1;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            position: relative; /* Penting untuk posisi absolut bidak */
+        }
+
+        .cell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: flex-end;
+            align-items: flex-start;
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #546e7a;
+            padding: 4px;
+            box-sizing: border-box;
+            border: 1px solid #cfd8dc;
+            position: relative;
+            overflow: hidden; /* Agar ikon pas di dalam */
+        }
+
+        /* Pewarnaan Papan Catur/Warna-warni */
+        .cell:nth-child(odd) { background-color: #ffffff; }
+        .cell:nth-child(even) { background-color: #f1f8e9; }
+        .cell.color-2 { background-color: #e3f2fd; }
+        .cell.color-3 { background-color: #fffde7; }
+        .cell.color-4 { background-color: #fce4ec; }
+
+        /* Tanda untuk Pertanyaan */
+        .cell .icon {
+            position: absolute;
+            bottom: 4px;
+            left: 4px;
+            font-size: 1.2em;
+            opacity: 0.6;
+        }
+        .cell .icon.question { color: #1976D2; }
+
+        /* Bidak Pemain */
+        .pawn {
+            width: var(--pawn-size);
+            height: var(--pawn-size);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            position: absolute;
+            transition: all 0.5s ease-in-out;
+            transform: translate(-50%, -50%); /* Sentralkan di koordinat top/left */
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7em;
+            color: white;
+            font-weight: bold;
+        }
+
+        /* Penyesuaian posisi 6 bidak agar muat dalam satu kotak */
+        #player-0-pawn { background-color: var(--player-1); top: 30%; left: 30%; }
+        #player-1-pawn { background-color: var(--player-2); top: 30%; left: 70%; }
+        #player-2-pawn { background-color: var(--player-3); top: 50%; left: 50%; }
+        #player-3-pawn { background-color: var(--player-4); top: 70%; left: 30%; }
+        #player-4-pawn { background-color: var(--player-5); top: 70%; left: 70%; }
+        #player-5-pawn { background-color: var(--player-6); top: 50%; left: 20%; } /* Sedikit penyesuaian untuk 6 */
+
+
+        /* Area Kontrol (Dadu 3D dan Giliran) */
+        #turn-display {
+            width: 100%;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--color-border);
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        #dice-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* --- CSS Dadu 3D --- */
+        .scene {
+            width: 100px;
+            height: 100px;
+            perspective: 400px;
+            margin: 20px auto;
+        }
+
+        .cube {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transform: translateZ(-50px);
+            transition: transform 1s;
+        }
+
+        .face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: #ffffff;
+            border: 2px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #333;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        /* Tampilan 6 Sisi Dadu */
+        .face.front  { transform: rotateY(  0deg) translateZ(50px); }
+        .face.back   { transform: rotateY(180deg) translateZ(50px); background-color: #fff; } /* 6 */
+        .face.right  { transform: rotateY( 90deg) translateZ(50px); } /* 2 */
+        .face.left   { transform: rotateY(-90deg) translateZ(50px); } /* 5 */
+        .face.top    { transform: rotateX( 90deg) translateZ(50px); } /* 4 */
+        .face.bottom { transform: rotateX(-90deg) translateZ(50px); } /* 3 */
+        
+        /* Transformasi untuk menunjukkan hasil */
+        .cube.show-1 { transform: translateZ(-50px) rotateY(   0deg); }
+        .cube.show-2 { transform: translateZ(-50px) rotateY( -90deg); }
+        .cube.show-3 { transform: translateZ(-50px) rotateX(  90deg); }
+        .cube.show-4 { transform: translateZ(-50px) rotateX( -90deg); }
+        .cube.show-5 { transform: translateZ(-50px) rotateY(  90deg); }
+        .cube.show-6 { transform: translateZ(-50px) rotateY( 180deg); }
+        
+        /* Animasi Berputar */
+        @keyframes roll {
+            0% { transform: translateZ(-50px) rotateX(0deg) rotateY(0deg); }
+            100% { transform: translateZ(-50px) rotateX(720deg) rotateY(1080deg); }
+        }
+
+        .cube.rolling {
+            animation: roll 1s linear;
+        }
+        /* --- Akhir CSS Dadu 3D --- */
+
+
+        #roll-button {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #fff;
+            background-color: var(--color-accent);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+        }
+
+        #roll-button:hover:not(:disabled) {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        #roll-button:disabled {
+            background-color: #c0c0c0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        #message-log {
+            width: 100%;
+            height: 100px;
+            background: #f8f9fa;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
+        #message-log p {
+            margin: 0 0 5px 0;
+            border-bottom: 1px dashed #eee;
+            padding-bottom: 3px;
+        }
+
+        /* ----- Modal CSS (untuk Pertanyaan) ----- */
+        .modal {
+            display: none; /* Sembunyi secara default */
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6); /* Latar belakang gelap */
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 30px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        #question-title {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--color-accent);
+            margin-bottom: 15px;
+        }
+
+        #question-text {
+            font-size: 1.2em;
+            margin-bottom: 25px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 1em;
+            border: 2px solid var(--color-border);
+            border-radius: 8px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .option-button:hover {
+            background-color: #f4f4f4;
+            border-color: #aaa;
+        }
+
+        #feedback-text {
+            margin-top: 20px;
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        #feedback-text.correct { color: #43A047; }
+        #feedback-text.wrong { color: #E53935; }
+
+        #continue-button {
+            margin-top: 20px;
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: 600;
+            color: #fff;
+            background-color: #5cb85c;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none; /* Tampil setelah jawaban */
+        }
+        
+        /* CSS untuk Peta Ular dan Tangga */
+        #board-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Biarkan klik menembus */
+            z-index: 5;
+        }
+
+        #board-overlay line {
+            stroke-width: 5px;
+            opacity: 0.7;
+            stroke-linecap: round;
+        }
+
+        #board-overlay .snake-line {
+            stroke: #E53935; /* Merah */
+        }
+
+        #board-overlay .ladder-line {
+            stroke: #43A047; /* Hijau */
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Ular Tangga: Unsur-Unsur Kimia</h1>
+
+    <div class="game-container">
+        <!-- Panel Kiri: Papan Permainan -->
+        <div class="left-panel">
+            <div id="game-board">
+                <!-- Sel-sel papan akan dibuat oleh JS -->
+                <!-- Overlay untuk Ular & Tangga -->
+                <svg id="board-overlay"></svg>
+            </div>
+        </div>
+
+        <!-- Panel Kanan: Kontrol Permainan -->
+        <div class="right-panel">
+            <div id="turn-display">Giliran Pemain 1</div>
+            
+            <div id="dice-container">
+                <!-- Dadu 3D Baru -->
+                <div class="scene">
+                    <div class="cube show-1">
+                        <div class="face front">1</div>
+                        <div class="face back">6</div>
+                        <div class="face right">2</div>
+                        <div class="face left">5</div>
+                        <div class="face top">4</div>
+                        <div class="face bottom">3</div>
+                    </div>
+                </div>
+
+                <button id="roll-button">Kocok Dadu!</button>
+            </div>
+
+            <div id="message-log-container">
+                <strong>Log Permainan:</strong>
+                <div id="message-log">
+                    <p>Selamat datang! Giliran Pemain 1 untuk memulai.</p>
+                </div>
+            </div>
+
+            <button id="reset-button" style="background-color: #f44336; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">Mulai Ulang Permainan</button>
+        </div>
+    </div>
+
+    <!-- Modal untuk Pertanyaan Kimia -->
+    <div id="question-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="question-title">Soal Unsur Kimia!</h2>
+            <p id="question-text">Pertanyaan akan muncul di sini.</p>
+            <div class="options-grid">
+                <button class="option-button" data-option="0">Opsi A</button>
+                <button class="option-button" data-option="1">Opsi B</button>
+                <button class="option-button" data-option="2">Opsi C</button>
+                <button class="option-button" data-option="3">Opsi D</button>
+            </div>
+            <p id="feedback-text"></p>
+            <button id="continue-button">Lanjutkan</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const BOARD_SIZE = 100;
+            const NUM_PLAYERS = 6; // 6 Pemain
+            const PLAYER_COLORS = ['#E53935', '#1E88E5', '#43A047', '#FDD835', '#8E24AA', '#FB8C00'];
+
+            // Peta Ular dan Tangga yang JAUH LEBIH PANJANG
+            const SNAKES_AND_LADDERS = {
+                // Tangga (Naik)
+                5: 78,  // Wow!
+                15: 44,
+                23: 59,
+                33: 92, // Tangga Emas!
+                48: 69,
+                61: 82,
+                70: 89,
+
+                // Ular (Turun)
+                97: 12, // Ular Raksasa!
+                88: 31,
+                75: 28,
+                63: 21,
+                51: 11,
+                38: 7,
+                24: 2,
+            };
+
+            // Kotak Pertanyaan (Jauh lebih banyak!)
+            const QUESTION_CELLS = [
+                3, 6, 9, 13, 17, 20, 22, 25, 29, 31, 
+                34, 37, 40, 42, 46, 50, 53, 56, 60, 
+                62, 65, 68, 71, 74, 79, 83, 87, 91, 95, 99
+            ];
+
+            // BANK SOAL: UNSUR-UNSUR KIMIA
+            const QUESTIONS = [
+                {
+                    q: "Apa lambang kimia untuk unsur Emas?",
+                    o: ["Ag", "Au", "Em", "Go"],
+                    a: 1 // Indeks dari 'Au'
+                },
+                {
+                    q: "Unsur apa yang paling melimpah di atmosfer Bumi?",
+                    o: ["Oksigen", "Karbon Dioksida", "Nitrogen", "Argon"],
+                    a: 2 // Indeks dari 'Nitrogen'
+                },
+                {
+                    q: "Unsur apa yang digunakan dalam balon agar bisa terbang (lebih ringan dari udara)?",
+                    o: ["Helium (He)", "Hidrogen (H)", "Oksigen (O)", "Neon (Ne)"],
+                    a: 0 // Indeks dari 'Helium (He)'
+                },
+                {
+                    q: "Apa nama unsur dengan lambang 'Fe'?",
+                    o: ["Flourin", "Emas (Ferrum)", "Besi", "Perak"],
+                    a: 2 // Indeks dari 'Besi'
+                },
+                {
+                    q: "Unsur non-logam apa yang penting untuk semua kehidupan dan membentuk senyawa organik?",
+                    o: ["Silikon (Si)", "Karbon (C)", "Belerang (S)", "Fosfor (P)"],
+                    a: 1 // Indeks dari 'Karbon (C)'
+                },
+                {
+                    q: "Manakah dari berikut ini yang merupakan gas mulia?",
+                    o: ["Hidrogen (H)", "Klorin (Cl)", "Neon (Ne)", "Natrium (Na)"],
+                    a: 2 // Indeks dari 'Neon (Ne)'
+                },
+                {
+                    q: "Unsur apa yang membuat tulang dan gigi kita kuat?",
+                    o: ["Kalium (K)", "Besi (Fe)", "Kalsium (Ca)", "Magnesium (Mg)"],
+                    a: 2 // Indeks dari 'Kalsium (Ca)'
+                },
+                {
+                    q: "Apa lambang kimia untuk Perak?",
+                    o: ["Ag", "Si", "Pr", "Au"],
+                    a: 0 // Indeks dari 'Ag' (Argentum)
+                },
+                {
+                    q: "Unsur apa yang digunakan sebagai bahan bakar utama di reaktor nuklir?",
+                    o: ["Plutonium (Pu)", "Titanium (Ti)", "Uranium (U)", "Radium (Ra)"],
+                    a: 2 // Indeks dari 'Uranium (U)'
+                },
+                {
+                    q: "Unsur apa yang memberi warna merah pada darah (sebagai bagian dari hemoglobin)?",
+                    o: ["Tembaga (Cu)", "Besi (Fe)", "Magnesium (Mg)", "Seng (Zn)"],
+                    a: 1 // Indeks dari 'Besi (Fe)'
+                },
+                {
+                    q: "Unsur dengan lambang 'K' adalah...",
+                    o: ["Kalsium", "Karbon", "Kripton", "Kalium"],
+                    a: 3 // Indeks dari 'Kalium' (dari 'Kalium' Latin/Jerman)
+                },
+                {
+                    q: "Unsur apa yang paling ringan dan paling sederhana (nomor atom 1)?",
+                    o: ["Helium (He)", "Hidrogen (H)", "Litium (Li)", "Oksigen (O)"],
+                    a: 1 // Indeks dari 'Hidrogen (H)'
+                }
+            ];
+
+            // Elemen DOM
+            const gameBoard = document.getElementById('game-board');
+            const playerTurnDisplay = document.getElementById('turn-display');
+            const rollButton = document.getElementById('roll-button');
+            const resetButton = document.getElementById('reset-button');
+            const messageLog = document.getElementById('message-log');
+            const diceCube = document.querySelector('.cube');
+            const boardOverlay = document.getElementById('board-overlay');
+
+            // Modal Pertanyaan
+            const modal = document.getElementById('question-modal');
+            const questionText = document.getElementById('question-text');
+            const optionButtons = document.querySelectorAll('.option-button');
+            const feedbackText = document.getElementById('feedback-text');
+            const continueButton = document.getElementById('continue-button');
+
+            // Variabel Status Permainan
+            let players = [];
+            let currentPlayerIndex = 0;
+            let gameInProgress = true;
+            let currentQuestion = null;
+            let onQuestionAnswered = null;
+
+            // Fungsi Inisialisasi Permainan
+            function initGame() {
+                gameBoard.innerHTML = ''; // Hapus sel lama
+                boardOverlay.innerHTML = ''; // Hapus garis-garis SVG lama
+                players = [];
+                currentPlayerIndex = 0;
+                gameInProgress = true;
+
+                // 1. Membuat Papan Permainan (100 sel)
+                let cells = [];
+                for (let i = BOARD_SIZE; i >= 1; i--) {
+                    cells.push(i);
+                }
+
+                // Mengatur baris agar zig-zag
+                let boardCells = [];
+                for (let i = 0; i < BOARD_SIZE / 10; i++) {
+                    let row = cells.slice(i * 10, (i + 1) * 10);
+                    if (i % 2 !== 0) { // Baris ganjil (dari atas), balik arah
+                        row.reverse();
+                    }
+                    boardCells.push(...row);
+                }
+                boardCells.reverse(); // Balik total array agar 1 di kiri bawah
+
+                boardCells.forEach((num, index) => {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell');
+                    cell.setAttribute('data-number', num);
+
+                    // Tambah pewarnaan
+                    if ((index + Math.floor(index/10)) % 2 === 0) {
+                         cell.classList.add('color-2');
+                    }
+                    if (num % 10 === 0) cell.classList.add('color-3');
+                    if (num % 11 === 0) cell.classList.add('color-4');
+
+
+                    let iconHtml = `<span class="number">${num}</span>`;
+                    
+                    // Tambah ikon (HANYA untuk Pertanyaan)
+                    if (QUESTION_CELLS.includes(num)) {
+                        iconHtml += `<i class="icon question fas fa-question-circle"></i>`;
+                    }
+
+                    cell.innerHTML = iconHtml;
+                    gameBoard.appendChild(cell);
+                });
+
+                // 2. Membuat Bidak Pemain
+                for (let i = 0; i < NUM_PLAYERS; i++) {
+                    const pawn = document.createElement('div');
+                    pawn.classList.add('pawn');
+                    pawn.id = `player-${i}-pawn`;
+                    pawn.style.backgroundColor = PLAYER_COLORS[i];
+                    pawn.innerText = i + 1;
+                    gameBoard.appendChild(pawn);
+
+                    players.push({
+                        id: i,
+                        position: 0, // Mulai dari 0 (logika)
+                        pawnElement: pawn
+                    });
+
+                    // Tempatkan bidak di kotak 1 (visual)
+                    movePawnVisual(i, 0); 
+                }
+
+                // 3. Mengatur status awal
+                updateTurnDisplay();
+                rollButton.disabled = false;
+                logMessage(`Permainan dimulai! Giliran ${getPlayerName(0)}.`);
+
+                // 4. Gambar Ular dan Tangga
+                // Panggil DENGAN JEDA agar papan selesai render
+                setTimeout(drawSnakesAndLadders, 100); 
+            }
+
+            // Fungsi untuk menggambar Ular dan Tangga (BARU)
+            function drawSnakesAndLadders() {
+                const boardRect = gameBoard.getBoundingClientRect();
+
+                for (const [start, end] of Object.entries(SNAKES_AND_LADDERS)) {
+                    const startCell = gameBoard.querySelector(`.cell[data-number="${start}"]`);
+                    const endCell = gameBoard.querySelector(`.cell[data-number="${end}"]`);
+
+                    if (!startCell || !endCell) continue;
+
+                    const startRect = startCell.getBoundingClientRect();
+                    const endRect = endCell.getBoundingClientRect();
+
+                    // Hitung pusat relatif dari setiap sel
+                    const x1 = (startRect.left - boardRect.left + startRect.width / 2);
+                    const y1 = (startRect.top - boardRect.top + startRect.height / 2);
+                    const x2 = (endRect.left - boardRect.left + endRect.width / 2);
+                    const y2 = (endRect.top - boardRect.top + endRect.height / 2);
+
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', x1);
+                    line.setAttribute('y1', y1);
+                    line.setAttribute('x2', x2);
+                    line.setAttribute('y2', y2);
+
+                    if (end > start) { // Tangga
+                        line.classList.add('ladder-line');
+                    } else { // Ular
+                        line.classList.add('snake-line');
+                    }
+
+                    boardOverlay.appendChild(line);
+                }
+            }
+
+
+            // Fungsi untuk memindahkan bidak secara visual
+            // Diperbarui: Posisi 0 = Kotak 1
+            async function movePawnVisual(playerId, newPosition) {
+                const player = players.find(p => p.id === playerId);
+                const pawn = player.pawnElement;
+
+                let targetCell;
+                if (newPosition === 0) {
+                    // Jika posisi "0" (mulai), bidak secara visual ditempatkan di kotak "1".
+                    targetCell = gameBoard.querySelector(`.cell[data-number="1"]`);
+                } else {
+                    // Jika posisi lain, cari kotak normal.
+                    targetCell = gameBoard.querySelector(`.cell[data-number="${newPosition}"]`);
+                }
+                
+                if (!targetCell) return; // Penjagaan
+
+                // Pindahkan pion ke tengah sel target
+                const cellRect = targetCell.getBoundingClientRect();
+                const boardRect = gameBoard.getBoundingClientRect();
+
+                pawn.style.top = `${cellRect.top - boardRect.top + cellRect.height / 2}px`;
+                pawn.style.left = `${cellRect.left - boardRect.left + cellRect.width / 2}px`;
+            }
+
+
+            // Fungsi mengocok dadu (diperbarui untuk 3D)
+            async function rollDice() {
+                gameInProgress = false;
+                rollButton.disabled = true;
+
+                const roll = Math.floor(Math.random() * 6) + 1;
+                
+                // 1. Hapus kelas hasil sebelumnya dan tambahkan animasi
+                diceCube.className = 'cube rolling';
+
+                await sleep(1000); // Tunggu animasi selesai
+
+                // 2. Hentikan animasi dan tunjukkan hasil
+                diceCube.className = `cube show-${roll}`;
+                
+                await sleep(500); // Jeda singkat untuk melihat hasil
+
+                logMessage(`${getPlayerName(currentPlayerIndex)} mendapat angka ${roll}.`);
+                return roll;
+            }
+
+            // Fungsi utama menangani giliran
+            async function handleTurn() {
+                if (!gameInProgress) return;
+
+                const roll = await rollDice();
+                const player = players[currentPlayerIndex];
+                
+                let newPosition = player.position + roll;
+
+                if (newPosition > BOARD_SIZE) {
+                    newPosition = player.position; // Tidak bergerak jika melebihi 100
+                    logMessage(`${getPlayerName(player.id)} perlu angka pas untuk menang!`);
+                } else {
+                    player.position = newPosition;
+                    logMessage(`${getPlayerName(player.id)} bergerak ke kotak ${newPosition}.`);
+                    await movePawnVisual(player.id, newPosition);
+                    await sleep(500);
+                }
+
+                // Cek Kemenangan
+                if (newPosition === BOARD_SIZE) {
+                    await handleWin(player);
+                    return;
+                }
+
+                // Cek Ular atau Tangga
+                if (SNAKES_AND_LADDERS[newPosition]) {
+                    const targetPosition = SNAKES_AND_LADDERS[newPosition];
+                    const isLadder = targetPosition > newPosition;
+                    logMessage(isLadder ? `Wow! ${getPlayerName(player.id)} menemukan tangga ke ${targetPosition}!` : `Aduh! ${getPlayerName(player.id)} digigit ular, turun ke ${targetPosition}!`);
+                    
+                    await sleep(500);
+                    player.position = targetPosition;
+                    await movePawnVisual(player.id, targetPosition);
+                    await sleep(500);
+                }
+
+                // Cek Pertanyaan
+                if (QUESTION_CELLS.includes(player.position)) {
+                    await handleQuestion(player);
+                } else {
+                    // Jika tidak ada pertanyaan, langsung ganti pemain
+                    nextPlayer();
+                }
+            }
+
+            // Menangani Pertanyaan
+            async function handleQuestion(player) {
+                logMessage(`${getPlayerName(player.id)} mendarat di kotak soal!`);
+                
+                currentQuestion = QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)];
+                
+                // Setel ulang dan tampilkan modal
+                feedbackText.innerText = '';
+                feedbackText.className = '';
+                continueButton.style.display = 'none';
+                optionButtons.forEach(btn => btn.disabled = false);
+
+                questionText.innerText = currentQuestion.q;
+                optionButtons.forEach((btn, index) => {
+                    btn.innerText = currentQuestion.o[index];
+                });
+                
+                modal.style.display = 'flex';
+
+                // Menunggu jawaban (dibuat sebagai Promise)
+                const answerPromise = new Promise(resolve => {
+                    onQuestionAnswered = (isCorrect) => {
+                        resolve(isCorrect);
+                    };
+                });
+                
+                const isCorrect = await answerPromise;
+
+                // Setelah 'continue' ditekan
+                modal.style.display = 'none';
+                
+                if (!isCorrect) {
+                    const penaltyPosition = Math.max(0, player.position - 5); // Mundur 5 langkah
+                    logMessage(`${getPlayerName(player.id)} salah! Mundur ke ${penaltyPosition}.`);
+                    player.position = penaltyPosition;
+                    await movePawnVisual(player.id, penaltyPosition);
+                } else {
+                    logMessage(`${getPlayerName(player.id)} benar! Tetap di posisi.`);
+                }
+
+                nextPlayer();
+            }
+
+            // Fungsi saat jawaban dipilih
+            optionButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const selectedOption = parseInt(button.getAttribute('data-option'));
+                    const isCorrect = (selectedOption === currentQuestion.a);
+
+                    if (isCorrect) {
+                        feedbackText.innerText = "Jawaban Benar! Kerja Bagus!";
+                        feedbackText.className = 'correct';
+                    } else {
+                        feedbackText.innerText = `Salah. Jawaban yang benar adalah: ${currentQuestion.o[currentQuestion.a]}`;
+                        feedbackText.className = 'wrong';
+                    }
+
+                    // Matikan tombol opsi dan tampilkan tombol 'Lanjutkan'
+                    optionButtons.forEach(btn => btn.disabled = true);
+                    continueButton.style.display = 'block';
+
+                    // Kirim hasil ke promise (onQuestionAnswered)
+                    if (onQuestionAnswered) {
+                        continueButton.onclick = () => onQuestionAnswered(isCorrect);
+                    }
+                });
+            });
+
+            // Menangani Kemenangan
+            async function handleWin(player) {
+                logMessage(`SELAMAT! ${getPlayerName(player.id)} telah memenangkan permainan!`);
+                alert(`SELAMAT! ${getPlayerName(player.id)} telah memenangkan permainan!`);
+                gameInProgress = false;
+                rollButton.disabled = true;
+            }
+
+            // Ganti Pemain
+            function nextPlayer() {
+                currentPlayerIndex = (currentPlayerIndex + 1) % NUM_PLAYERS;
+                updateTurnDisplay();
+                logMessage(`Sekarang giliran ${getPlayerName(currentPlayerIndex)}.`);
+                gameInProgress = true;
+                rollButton.disabled = false;
+            }
+
+            // Fungsi utilitas
+            function getPlayerName(index) {
+                return `Pemain ${index + 1}`;
+            }
+
+            function updateTurnDisplay() {
+                const player = players[currentPlayerIndex];
+                playerTurnDisplay.innerText = `Giliran ${getPlayerName(currentPlayerIndex)}`;
+                playerTurnDisplay.style.borderColor = PLAYER_COLORS[currentPlayerIndex];
+                playerTurnDisplay.style.backgroundColor = `${PLAYER_COLORS[currentPlayerIndex]}20`; // Transparansi 20%
+            }
+
+            function logMessage(msg) {
+                messageLog.innerHTML = `<p>${msg}</p>` + messageLog.innerHTML; // Tambah di atas
+            }
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+/*
+Setting up an `async` function and using `await` with `sleep` is the modern and correct way to handle pauses in JavaScript without blocking the entire browser.
+*/
+            // Event Listeners
+            rollButton.addEventListener('click', handleTurn);
+            resetButton.addEventListener('click', () => {
+                if (confirm("Anda yakin ingin memulai ulang permainan?")) {
+                    initGame();
+                }
+            });
+
+            // Mulai Permainan!
+            initGame();
+        });
+    </script>
+
+</body>
+</html>
